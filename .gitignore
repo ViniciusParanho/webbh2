@@ -1,0 +1,25 @@
+# Maven
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# H2 local DB
+backend/data/
+
+# Claude settings
+.claude/
+
+# Uploads (arquivos locais)
+backend/uploads/
+uploads/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

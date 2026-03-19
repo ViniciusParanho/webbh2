@@ -1,0 +1,1 @@
+web: java -Dspring.profiles.active=prod -jar target/webbh-sistema-1.0.0.jar
