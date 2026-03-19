@@ -1,3 +1,6 @@
+[phases.setup]
+nixPkgs = ["jdk21_headless", "maven"]
+
 [phases.build]
 cmds = ["cd backend && mvn package -DskipTests -q"]
 
