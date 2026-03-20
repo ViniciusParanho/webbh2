@@ -339,10 +339,9 @@
   /* ── RESPONSIVE: TABLET (≤768px) ── */
   @media(max-width:768px){
     /* Login */
-    .login-split{flex-direction:column;width:94vw;height:auto;}
-    .login-left{width:100%;padding:24px 28px;}
-    .login-left::before,.login-left::after{display:none;}
-    .login-right{padding:24px 28px;}
+    .login-split{width:min(420px,94vw);height:auto;}
+    .login-left{display:none;}
+    .login-right{padding:32px 28px;}
 
     /* Sidebar como drawer */
     .sidebar{transform:translateX(-100%);transition:transform .28s cubic-bezier(.2,.85,.4,1);}
