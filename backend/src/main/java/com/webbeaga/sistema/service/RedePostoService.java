@@ -3,6 +3,7 @@ package com.webbeaga.sistema.service;
 import com.webbeaga.sistema.dto.DTOs.*;
 import com.webbeaga.sistema.entity.Posto;
 import com.webbeaga.sistema.entity.Rede;
+import com.webbeaga.sistema.repository.ChamadoRepository;
 import com.webbeaga.sistema.repository.PostoRepository;
 import com.webbeaga.sistema.repository.RedeRepository;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,12 @@ public class RedePostoService {
 
     private final RedeRepository redeRepo;
     private final PostoRepository postoRepo;
+    private final ChamadoRepository chamadoRepo;
 
-    public RedePostoService(RedeRepository redeRepo, PostoRepository postoRepo) {
-        this.redeRepo  = redeRepo;
-        this.postoRepo = postoRepo;
+    public RedePostoService(RedeRepository redeRepo, PostoRepository postoRepo, ChamadoRepository chamadoRepo) {
+        this.redeRepo     = redeRepo;
+        this.postoRepo    = postoRepo;
+        this.chamadoRepo  = chamadoRepo;
     }
 
     @Transactional(readOnly = true)
@@ -53,11 +56,18 @@ public class RedePostoService {
 
     @Transactional
     public void excluirRede(Long id) {
-        redeRepo.deleteById(id);
+        Rede rede = redeRepo.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Rede nao encontrada: " + id));
+        List<Long> postoIds = rede.getPostos().stream().map(Posto::getId).collect(Collectors.toList());
+        if (!postoIds.isEmpty()) {
+            chamadoRepo.desvincularPostos(postoIds);
+        }
+        redeRepo.delete(rede);
     }
 
     @Transactional
     public void excluirPosto(Long id) {
+        chamadoRepo.desvincularPostos(List.of(id));
         postoRepo.deleteById(id);
     }
 
