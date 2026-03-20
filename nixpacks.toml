@@ -5,4 +5,4 @@ nixPkgs = ["jdk", "maven"]
 cmds = ["cd backend && mvn package -DskipTests -q"]
 
 [start]
-cmd = "java -jar backend/target/webbh-sistema-1.0.0.jar"
+cmd = "java -Dspring.profiles.active=prod -jar backend/target/webbh-sistema-1.0.0.jar"
