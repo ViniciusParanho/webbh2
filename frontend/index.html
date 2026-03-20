@@ -326,6 +326,69 @@
   .posto-drop{position:absolute;top:100%;left:0;right:0;background:var(--navy-mid);border:1px solid var(--border2);border-radius:7px;max-height:180px;overflow-y:auto;z-index:50;display:none;box-shadow:0 8px 24px rgba(0,0,0,.4);}
   .posto-opt{padding:9px 12px;font-size:13px;color:var(--w60);cursor:pointer;transition:background .12s;}
   .posto-opt:hover{background:var(--navy-hover);color:var(--white);}
+
+  /* ── HAMBURGER ── */
+  .hamburger{display:none;flex-direction:column;gap:4px;background:none;border:none;cursor:pointer;padding:6px;border-radius:6px;flex-shrink:0;}
+  .hamburger:hover{background:var(--navy-hover);}
+  .hamburger span{display:block;width:20px;height:2px;background:var(--white);border-radius:1px;}
+
+  /* ── SIDEBAR OVERLAY ── */
+  .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99;}
+  .sb-overlay.open{display:block;}
+
+  /* ── RESPONSIVE: TABLET (≤768px) ── */
+  @media(max-width:768px){
+    /* Login */
+    .login-split{flex-direction:column;width:94vw;height:auto;}
+    .login-left{width:100%;padding:24px 28px;}
+    .login-left::before,.login-left::after{display:none;}
+    .login-right{padding:24px 28px;}
+
+    /* Sidebar como drawer */
+    .sidebar{transform:translateX(-100%);transition:transform .28s cubic-bezier(.2,.85,.4,1);}
+    .sidebar.open{transform:translateX(0);}
+    .hamburger{display:flex;}
+    .main{margin-left:0;}
+
+    /* Topbar */
+    .sys-bg{display:none;}
+    .content{padding:14px 12px;}
+
+    /* Grids */
+    .srow{grid-template-columns:repeat(2,1fr);gap:10px;}
+    .g2,.g2b{grid-template-columns:1fr;}
+    .fgrid{grid-template-columns:repeat(2,1fr);}
+    .rgrid{grid-template-columns:1fr;}
+    .calwrap{grid-template-columns:1fr;}
+    .pregs{grid-template-columns:repeat(2,1fr);}
+    .f2{grid-template-columns:1fr;}
+
+    /* Tabelas com scroll horizontal */
+    .cb{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+
+    /* Ponto */
+    .ph{padding:22px 16px;}
+    .ph-time{font-size:48px;letter-spacing:-2px;}
+    .bpt{padding:9px 14px;font-size:12px;}
+
+    /* Modais como bottom sheet */
+    .mo{align-items:flex-end;}
+    .mbox{width:100%!important;max-width:100%!important;border-radius:var(--r-lg) var(--r-lg) 0 0;max-height:92vh;}
+
+    /* Topbar button */
+    #tb-btn{font-size:12px;padding:6px 11px;}
+  }
+
+  /* ── RESPONSIVE: MOBILE (≤480px) ── */
+  @media(max-width:480px){
+    .srow{grid-template-columns:1fr 1fr;}
+    .sc-v{font-size:20px;}
+    .ph-time{font-size:38px;}
+    .tb-clock{display:none;}
+    .fgrid{grid-template-columns:1fr;}
+    .ph-btns{flex-direction:column;align-items:stretch;}
+    .bpt{justify-content:center;}
+  }
 </style>
 </head>
 <body>
@@ -378,9 +441,13 @@
       </div>
     </div>
   </nav>
+  <div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
 
   <div class="main">
     <div class="topbar">
+      <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
       <div class="tb-title" id="pg-title">Dashboard</div>
       <div class="sys-bg"><span class="sys-dot"></span> QualityPos</div>
       <div class="tb-clock" id="clock">--:--:--</div>
@@ -1024,6 +1091,15 @@ async function afterLogin() {
   setTimeout(()=>{ s.style.display='none'; document.getElementById('app').classList.add('visible'); },400);
 }
 
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sb-overlay').classList.toggle('open');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sb-overlay').classList.remove('open');
+}
+
 function doLogout(){
   token=null; currentUser=null;
   localStorage.removeItem('wb_token');
@@ -1054,6 +1130,7 @@ function sp(id,el){
   tbBtn.textContent=PB[id]||'';
   tbBtn.style.display=(id==='agenda'||!PB[id])?'none':'';
   if(id==='relatorios') renderRelatorio();
+  closeSidebar();
 }
 function tbAction(){
   const m=document.querySelector('.ni.active')?.getAttribute('onclick')?.match(/'(\w+)'/);
