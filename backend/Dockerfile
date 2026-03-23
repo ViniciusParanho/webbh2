@@ -12,4 +12,4 @@ WORKDIR /app
 COPY --from=build /app/target/webbh-sistema-1.0.0.jar app.jar
 RUN mkdir -p uploads/erros
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-XX:+UseContainerSupport", "-jar", "app.jar"]
