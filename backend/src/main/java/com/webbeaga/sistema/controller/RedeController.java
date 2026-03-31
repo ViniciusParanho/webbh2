@@ -45,6 +45,13 @@ public class RedeController {
         return ResponseEntity.ok(ApiResponse.ok("Posto removido", null));
     }
 
+    @PutMapping("/postos/{id}")
+    public ResponseEntity<ApiResponse<PostoResponse>> atualizarPosto(
+            @PathVariable Long id,
+            @RequestBody PostoUpdateRequest req) {
+        return ResponseEntity.ok(ApiResponse.ok(redePostoService.atualizarPosto(id, req)));
+    }
+
     @PatchMapping("/postos/{postoId}/online")
     public ResponseEntity<ApiResponse<PostoResponse>> atualizarOnline(
             @PathVariable Long postoId,

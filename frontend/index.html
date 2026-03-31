@@ -794,6 +794,19 @@
   </div>
 </div>
 
+<!-- Modal Editar Posto -->
+<div class="mo" id="m-edit-posto">
+  <div class="mbox">
+    <div class="mh"><div class="mt">Editar Posto</div><button class="mc" onclick="closeM('m-edit-posto')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="ep-id">
+      <div class="ff"><label>Nome do Posto</label><input type="text" id="ep-nome" placeholder="Ex: Posto Ipiranga Centro"></div>
+      <div class="f2"><div class="ff"><label>ID AnyDesk</label><input type="text" id="ep-desk" placeholder="123 456 789"></div><div class="ff"><label>Senha AnyDesk <span style="font-weight:400;text-transform:none;color:var(--w30)">(se diferente da rede)</span></label><input type="text" id="ep-desk-pw" placeholder="Deixe vazio p/ usar da rede"></div></div>
+    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('m-edit-posto')">Cancelar</button><button class="btn br" onclick="saveEditPosto()">Salvar</button></div>
+  </div>
+</div>
+
 <!-- Modal Reportar Erro -->
 <div class="mo" id="m-erro">
   <div class="mbox wide" style="max-width:580px">
@@ -1903,7 +1916,8 @@ function _renderRedeGrid(lista){
       const pSenha=(p.anyDeskSenha&&p.anyDeskSenha!==rede.anyDeskSenha)
         ?`<span class="adid" title="Senha própria deste posto" onclick="cpAd('${p.anyDeskSenha}',this)" style="background:rgba(139,92,246,.12);border-color:rgba(139,92,246,.25);color:#a78bfa">🔑 ${p.anyDeskSenha}</span>`:'';
       const delBtn=`<button onclick="excluirPosto(${p.id})" title="Excluir posto" style="background:none;border:none;color:var(--w30);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:4px" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='var(--w30)'">✕</button>`;
-      return `<div class="prow"><div style="flex:1"><div class="pnm fr"><span class="${p.online?'don':'doff'}"></span>${p.nome}</div></div><div class="pacts">${adBtn}${pSenha}${delBtn}</div></div>`;
+      const editBtn=`<button onclick="editarPosto(${p.id})" title="Editar posto" style="background:none;border:none;color:var(--w30);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:4px" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--w30)'">⚙</button>`;
+      return `<div class="prow"><div style="flex:1"><div class="pnm fr"><span class="${p.online?'don':'doff'}"></span>${p.nome}</div></div><div class="pacts">${adBtn}${pSenha}${editBtn}${delBtn}</div></div>`;
     }).join('');
     return `<div class="rc"><div class="rch"><div style="flex:1"><div class="rcn">${rede.nome}</div><div class="rcc">${rede.totalPostos} posto${rede.totalPostos!==1?'s':''} ${senhaTag?'· '+senhaTag:''}</div></div>${delRedeBtn}</div><div class="plist">${postos}</div></div>`;
   }).join('');
@@ -1927,6 +1941,30 @@ async function excluirRede(id){
     _renderRedeGrid(REDES_CACHE);
     toast('Rede excluída','in');
   } catch(e){ toast(e.message||'Erro ao excluir rede','er'); }
+}
+
+function editarPosto(id){
+  const posto=REDES_CACHE.flatMap(r=>r.postos||[]).find(p=>p.id===id);
+  if(!posto) return;
+  document.getElementById('ep-id').value=id;
+  document.getElementById('ep-nome').value=posto.nome||'';
+  document.getElementById('ep-desk').value=posto.anyDeskId||'';
+  document.getElementById('ep-desk-pw').value=posto.anyDeskSenha||'';
+  openM('m-edit-posto');
+}
+
+async function saveEditPosto(){
+  const id=document.getElementById('ep-id')?.value;
+  const nome=document.getElementById('ep-nome')?.value?.trim();
+  const anyDeskId=document.getElementById('ep-desk')?.value?.trim();
+  const anyDeskSenha=document.getElementById('ep-desk-pw')?.value?.trim();
+  if(!nome){ toast('Informe o nome do posto','er'); return; }
+  try {
+    await api('PUT',`/api/redes/postos/${id}`,{nome,anyDeskId:anyDeskId||null,anyDeskSenha:anyDeskSenha||null});
+    closeM('m-edit-posto');
+    await renderRedes();
+    toast('Posto atualizado!','ok');
+  } catch(e){ toast(e.message||'Erro ao atualizar posto','er'); }
 }
 
 async function excluirPosto(id){

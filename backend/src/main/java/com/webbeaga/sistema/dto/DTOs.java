@@ -269,6 +269,18 @@ public class DTOs {
         public void setObservacoes(String v)      { this.observacoes = v; }
     }
 
+    public static class PostoUpdateRequest {
+        private String nome;
+        private String anyDeskId;
+        private String anyDeskSenha;
+        public String getNome()         { return nome; }
+        public String getAnyDeskId()    { return anyDeskId; }
+        public String getAnyDeskSenha() { return anyDeskSenha; }
+        public void setNome(String v)         { this.nome = v; }
+        public void setAnyDeskId(String v)    { this.anyDeskId = v; }
+        public void setAnyDeskSenha(String v) { this.anyDeskSenha = v; }
+    }
+
     public static class RedeResponse {
         private Long id;
         private String nome, bandeira, anyDeskSenha;

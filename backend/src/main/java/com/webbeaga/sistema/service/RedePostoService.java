@@ -72,6 +72,16 @@ public class RedePostoService {
     }
 
     @Transactional
+    public PostoResponse atualizarPosto(Long postoId, PostoUpdateRequest req) {
+        Posto p = postoRepo.findById(postoId)
+            .orElseThrow(() -> new IllegalArgumentException("Posto nao encontrado: " + postoId));
+        if (req.getNome() != null && !req.getNome().isBlank()) p.setNome(req.getNome());
+        p.setAnyDeskId(req.getAnyDeskId());
+        p.setAnyDeskSenha(req.getAnyDeskSenha());
+        return toPostoResponse(postoRepo.save(p));
+    }
+
+    @Transactional
     public PostoResponse atualizarOnline(Long postoId, boolean online) {
         Posto p = postoRepo.findById(postoId)
             .orElseThrow(() -> new IllegalArgumentException("Posto nao encontrado: " + postoId));
