@@ -246,9 +246,6 @@
     #app{display:block!important;margin:0!important;}
     .main{margin:0!important;}
     .content{padding:0!important;}
-    .page{display:none!important;}
-    #page-relatorios{display:block!important;}
-    .print-report{display:block!important;}
     .card,.sc,.tbl td,.tbl th{background:#fff!important;color:#000!important;border-color:#ddd!important;}
     .tbl td b,.ct,.sc-v,.tb-title{color:#000!important;}
     .chip,.cg,.cr,.cy,.cb2{background:#eee!important;color:#333!important;}
@@ -326,6 +323,68 @@
   .posto-drop{position:absolute;top:100%;left:0;right:0;background:var(--navy-mid);border:1px solid var(--border2);border-radius:7px;max-height:180px;overflow-y:auto;z-index:50;display:none;box-shadow:0 8px 24px rgba(0,0,0,.4);}
   .posto-opt{padding:9px 12px;font-size:13px;color:var(--w60);cursor:pointer;transition:background .12s;}
   .posto-opt:hover{background:var(--navy-hover);color:var(--white);}
+
+  /* ── HAMBURGER ── */
+  .hamburger{display:none;flex-direction:column;gap:4px;background:none;border:none;cursor:pointer;padding:6px;border-radius:6px;flex-shrink:0;}
+  .hamburger:hover{background:var(--navy-hover);}
+  .hamburger span{display:block;width:20px;height:2px;background:var(--white);border-radius:1px;}
+
+  /* ── SIDEBAR OVERLAY ── */
+  .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99;}
+  .sb-overlay.open{display:block;}
+
+  /* ── RESPONSIVE: TABLET (≤768px) ── */
+  @media(max-width:768px){
+    /* Login */
+    .login-split{width:min(420px,94vw);height:auto;}
+    .login-left{display:none;}
+    .login-right{padding:32px 28px;}
+
+    /* Sidebar como drawer */
+    .sidebar{transform:translateX(-100%);transition:transform .28s cubic-bezier(.2,.85,.4,1);}
+    .sidebar.open{transform:translateX(0);}
+    .hamburger{display:flex;}
+    .main{margin-left:0;}
+
+    /* Topbar */
+    .sys-bg{display:none;}
+    .content{padding:14px 12px;}
+
+    /* Grids */
+    .srow{grid-template-columns:repeat(2,1fr);gap:10px;}
+    .g2,.g2b{grid-template-columns:1fr;}
+    .fgrid{grid-template-columns:repeat(2,1fr);}
+    .rgrid{grid-template-columns:1fr;}
+    .calwrap{grid-template-columns:1fr;}
+    .pregs{grid-template-columns:repeat(2,1fr);}
+    .f2{grid-template-columns:1fr;}
+
+    /* Tabelas com scroll horizontal */
+    .cb{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+
+    /* Ponto */
+    .ph{padding:22px 16px;}
+    .ph-time{font-size:48px;letter-spacing:-2px;}
+    .bpt{padding:9px 14px;font-size:12px;}
+
+    /* Modais como bottom sheet */
+    .mo{align-items:flex-end;}
+    .mbox{width:100%!important;max-width:100%!important;border-radius:var(--r-lg) var(--r-lg) 0 0;max-height:92vh;}
+
+    /* Topbar button */
+    #tb-btn{font-size:12px;padding:6px 11px;}
+  }
+
+  /* ── RESPONSIVE: MOBILE (≤480px) ── */
+  @media(max-width:480px){
+    .srow{grid-template-columns:1fr 1fr;}
+    .sc-v{font-size:20px;}
+    .ph-time{font-size:38px;}
+    .tb-clock{display:none;}
+    .fgrid{grid-template-columns:1fr;}
+    .ph-btns{flex-direction:column;align-items:stretch;}
+    .bpt{justify-content:center;}
+  }
 </style>
 </head>
 <body>
@@ -364,6 +423,7 @@
     <div class="ni" onclick="sp('ponto',this)"><span class="ni-ico">⏱</span> Meu Ponto</div>
     <div class="sb-sec admin-only">Gestão</div>
     <div class="ni admin-only" onclick="sp('funcionarios',this)"><span class="ni-ico">👥</span> Funcionários</div>
+    <div class="ni admin-only" onclick="sp('relatorios',this)"><span class="ni-ico">📊</span> Relatórios</div>
     <div class="ni" onclick="sp('agenda',this)"><span class="ni-ico">📅</span> Agenda <span class="nb" id="nb-agenda">0</span></div>
     <div class="sb-sec">Operacional</div>
     <div class="ni" onclick="sp('acessos',this)"><span class="ni-ico">🖥</span> Acessos Remotos</div>
@@ -378,9 +438,13 @@
       </div>
     </div>
   </nav>
+  <div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
 
   <div class="main">
     <div class="topbar">
+      <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
       <div class="tb-title" id="pg-title">Dashboard</div>
       <div class="sys-bg"><span class="sys-dot"></span> QualityPos</div>
       <div class="tb-clock" id="clock">--:--:--</div>
@@ -535,47 +599,82 @@
       <div class="page" id="page-relatorios">
         <div class="admin-panel no-print">🔒 Área restrita — somente administradores</div>
 
-        <!-- Print header (only visible on print) -->
-        <div class="print-report" id="print-header">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #cc1f1f;">
-            <div>
-              <div style="font-size:22px;font-weight:900;font-family:'Montserrat',sans-serif;">webBeagá</div>
-              <div style="font-size:12px;color:#666;margin-top:2px;">Sistemas para Postos de Combustível</div>
+        <!-- Tabs de tipo -->
+        <div style="display:flex;gap:8px;margin-bottom:20px" class="no-print">
+          <button class="btn-filter active" id="rel-tab-ponto" onclick="setRelTab('ponto',this)">🕐 Ponto</button>
+          <button class="btn-filter" id="rel-tab-prod" onclick="setRelTab('prod',this)">📞 Produtividade</button>
+          <button class="btn-filter" id="rel-tab-atend" onclick="setRelTab('atend',this)">📍 Atendimentos</button>
+        </div>
+
+        <!-- ── Seção: Ponto ── -->
+        <div id="rel-sec-ponto">
+          <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center" class="no-print">
+            <select id="rel-user-sel" onchange="renderRelatorio()" style="background:var(--navy-card);border:1px solid var(--border2);border-radius:7px;padding:8px 12px;color:var(--white);font-size:13px;outline:none;min-width:180px;"></select>
+            <select id="rel-mes-sel" onchange="renderRelatorio()" style="background:var(--navy-card);border:1px solid var(--border2);border-radius:7px;padding:8px 12px;color:var(--white);font-size:13px;outline:none;"></select>
+            <button class="btn br" onclick="printRelatorio()">🖨 Imprimir</button>
+            <button class="btn bo" onclick="renderRelatorio()">↻ Atualizar</button>
+          </div>
+          <div class="srow" id="rel-stats"></div>
+          <div class="g2b">
+            <div class="card">
+              <div class="ch"><div class="ct" id="rel-tbl-title">Relatório de Ponto</div></div>
+              <div class="cb" style="padding:0">
+                <table class="tbl"><thead><tr><th>Data</th><th>Entrada</th><th>S. Almoço</th><th>Retorno</th><th>Saída</th><th>Total</th><th>Status</th></tr></thead>
+                <tbody id="rel-body"></tbody></table>
+              </div>
+              <div style="padding:11px 15px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:20px;font-size:12px;color:var(--w60)">
+                <span>Total: <b id="rel-total" style="color:var(--white)">—</b></span>
+                <span>Extras: <b id="rel-extra" style="color:#7ab8f5">—</b></span>
+                <span>Ausências: <b id="rel-ausencias" style="color:#f87171">—</b></span>
+              </div>
             </div>
-            <div style="text-align:right;font-size:12px;color:#666;">
-              <div style="font-weight:700;font-size:14px;color:#000;">Relatório de Ponto</div>
-              <div id="print-periodo">—</div>
-              <div id="print-gerado">—</div>
+            <div class="card">
+              <div class="ch"><div class="ct">Resumo Geral da Equipe</div></div>
+              <div class="cb" style="padding:0"><table class="tbl"><thead><tr><th>Funcionário</th><th>Horas</th><th>Extras</th><th>Faltas</th><th>Status</th></tr></thead><tbody id="rel-equipe"></tbody></table></div>
             </div>
           </div>
         </div>
 
-        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center" class="no-print">
-          <select id="rel-user-sel" onchange="renderRelatorio()" style="background:var(--navy-card);border:1px solid var(--border2);border-radius:7px;padding:8px 12px;color:var(--white);font-size:13px;outline:none;min-width:180px;"></select>
-          <select id="rel-mes-sel" onchange="renderRelatorio()" style="background:var(--navy-card);border:1px solid var(--border2);border-radius:7px;padding:8px 12px;color:var(--white);font-size:13px;outline:none;">
-            <option value="2">Março 2025</option><option value="1">Fevereiro 2025</option><option value="0">Janeiro 2025</option>
-          </select>
-          <button class="btn br" onclick="printRelatorio()">🖨 Imprimir Relatório</button>
-          <button class="btn bo" onclick="renderRelatorio()">↻ Atualizar</button>
-        </div>
-
-        <div class="srow" id="rel-stats"></div>
-        <div class="g2b">
+        <!-- ── Seção: Produtividade ── -->
+        <div id="rel-sec-prod" style="display:none">
+          <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+            <select id="rprod-user-sel" onchange="renderRelProd()" style="background:var(--navy-card);border:1px solid var(--border2);border-radius:7px;padding:8px 12px;color:var(--white);font-size:13px;outline:none;min-width:180px;"></select>
+            <select id="rprod-modo" onchange="rprodModoChange()" style="background:var(--navy-card);border:1px solid var(--border2);border-radius:7px;padding:8px 12px;color:var(--white);font-size:13px;outline:none;">
+              <option value="mes">Mês completo</option>
+              <option value="dia">Dia específico</option>
+            </select>
+            <select id="rprod-mes" onchange="renderRelProd()" style="background:var(--navy-card);border:1px solid var(--border2);border-radius:7px;padding:8px 12px;color:var(--white);font-size:13px;outline:none;"></select>
+            <input type="date" id="rprod-dia" onchange="renderRelProd()" style="display:none;background:var(--navy-card);border:1px solid var(--border2);border-radius:7px;padding:8px 12px;color:var(--white);font-size:13px;outline:none;">
+            <button class="btn br" onclick="printRelProdPagina()">🖨 Imprimir</button>
+          </div>
+          <div id="rprod-stats" style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap"></div>
           <div class="card">
-            <div class="ch"><div class="ct" id="rel-tbl-title">Relatório de Ponto</div></div>
-            <div class="cb" style="padding:0">
-              <table class="tbl"><thead><tr><th>Data</th><th>Entrada</th><th>S. Almoço</th><th>Retorno</th><th>Saída</th><th>Total</th><th>Status</th></tr></thead>
-              <tbody id="rel-body"></tbody></table>
-            </div>
-            <div style="padding:11px 15px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:20px;font-size:12px;color:var(--w60)">
-              <span>Total: <b id="rel-total" style="color:var(--white)">—</b></span>
-              <span>Extras: <b id="rel-extra" style="color:#7ab8f5">—</b></span>
-              <span>Ausências: <b id="rel-ausencias" style="color:#f87171">—</b></span>
+            <div class="ch"><div class="ct" id="rprod-titulo">Produtividade</div></div>
+            <div class="cb" style="padding:0;overflow-x:auto">
+              <table class="tbl" style="width:100%">
+                <thead><tr><th>Data/Hora</th><th>Funcionário</th><th>Tipo</th><th>Posto</th><th>Duração</th><th>Status</th></tr></thead>
+                <tbody id="rprod-body"></tbody>
+              </table>
             </div>
           </div>
-          <div class="card">
-            <div class="ch"><div class="ct">Resumo Geral da Equipe</div></div>
-            <div class="cb" style="padding:0"><table class="tbl"><thead><tr><th>Funcionário</th><th>Horas</th><th>Extras</th><th>Faltas</th><th>Status</th></tr></thead><tbody id="rel-equipe"></tbody></table></div>
+        </div>
+
+        <!-- ── Seção: Atendimentos ── -->
+        <div id="rel-sec-atend" style="display:none">
+          <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+            <select id="ratend-mes" onchange="renderRelAtend()" style="background:var(--navy-card);border:1px solid var(--border2);border-radius:7px;padding:8px 12px;color:var(--white);font-size:13px;outline:none;"></select>
+            <button class="btn bo" onclick="renderRelAtend()">↻ Atualizar</button>
+          </div>
+          <div class="srow" id="ratend-stats"></div>
+          <div class="g2b">
+            <div class="card">
+              <div class="ch"><div class="ct">📍 Postos que mais precisaram de atendimento</div></div>
+              <div class="cb" style="padding:0"><table class="tbl"><thead><tr><th>#</th><th>Posto</th><th>Atendimentos</th><th>Participação</th></tr></thead><tbody id="ratend-postos"></tbody></table></div>
+            </div>
+            <div class="card">
+              <div class="ch"><div class="ct">🔧 Problemas mais recorrentes</div></div>
+              <div class="cb" style="padding:0"><table class="tbl"><thead><tr><th>#</th><th>Tipo de Problema</th><th>Total</th><th>Participação</th></tr></thead><tbody id="ratend-tipos"></tbody></table></div>
+            </div>
           </div>
         </div>
       </div>
@@ -1037,6 +1136,15 @@ async function afterLogin() {
   setTimeout(()=>{ s.style.display='none'; document.getElementById('app').classList.add('visible'); },400);
 }
 
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sb-overlay').classList.toggle('open');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sb-overlay').classList.remove('open');
+}
+
 function doLogout(){
   token=null; currentUser=null;
   localStorage.removeItem('wb_token');
@@ -1055,8 +1163,8 @@ function doLogout(){
 document.addEventListener('keydown',e=>{ if(e.key==='Enter'&&document.getElementById('login-screen').style.display!=='none') doLogin(); });
 
 /* ══════════ NAV ══════════ */
-const PT={ dashboard:'Dashboard', ponto:'Meu Ponto', funcionarios:'Funcionários', agenda:'Agenda de Eventos', acessos:'Acessos Remotos', links:'Links Úteis', chamados:'Chamados', erros:'Erros / Bugs', relatorios:'Relatórios' };
-const PB={ dashboard:'', ponto:'Imprimir Ponto', funcionarios:'+ Novo Funcionário', agenda:'', acessos:'+ Novo Posto', links:'', chamados:'', erros:'', relatorios:'Imprimir Relatório' };
+const PT={ dashboard:'Dashboard', ponto:'Meu Ponto', funcionarios:'Funcionários', relatorios:'Relatórios', agenda:'Agenda de Eventos', acessos:'Acessos Remotos', links:'Links Úteis', chamados:'Chamados', erros:'Erros / Bugs' };
+const PB={ dashboard:'', ponto:'Imprimir Ponto', funcionarios:'+ Novo Funcionário', relatorios:'', agenda:'', acessos:'+ Novo Posto', links:'', chamados:'', erros:'' };
 function sp(id,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
@@ -1066,7 +1174,8 @@ function sp(id,el){
   const tbBtn=document.getElementById('tb-btn');
   tbBtn.textContent=PB[id]||'';
   tbBtn.style.display=(id==='agenda'||!PB[id])?'none':'';
-  if(id==='relatorios') renderRelatorio();
+  if(id==='relatorios') initRelatorios();
+  closeSidebar();
 }
 function tbAction(){
   const m=document.querySelector('.ni.active')?.getAttribute('onclick')?.match(/'(\w+)'/);
@@ -1074,7 +1183,6 @@ function tbAction(){
   if(p==='funcionarios') openM('m-func');
   else if(p==='acessos') openM('m-posto');
   else if(p==='ponto') printPonto();
-  else if(p==='relatorios') printRelatorio();
   else openM('m-evento');
 }
 
@@ -1288,7 +1396,7 @@ async function renderFuncs(){
     const bg=COLORS[i%COLORS.length];
     const horas=f.horasMes||0; const faltas=f.ausenciasMes||0; const extras=f.minutosExtrasMes||0;
     const roleChip=f.role==='ADMIN'?'<span class="chip cr">Admin</span>':`<span class="chip cb2">${f.cargo.split(' ')[0]}</span>`;
-    return `<div class="fc" style="cursor:pointer" onclick="openRelFunc(${f.id},'${f.nomeCompleto}','${f.cargo}')"><div class="fc-top"><div class="av av-m" style="background:${bg}">${f.nomeCompleto.charAt(0)}</div><div><div class="fc-nm">${f.nomeCompleto}</div><div class="fc-cg">${f.cargo}</div>${chipS}</div><div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px">${roleChip}<span style="font-size:11px;color:var(--w30);background:var(--navy-light);padding:3px 8px;border-radius:5px">📊 Relatório</span></div></div>
+    return `<div class="fc"><div class="fc-top"><div class="av av-m" style="background:${bg}">${f.nomeCompleto.charAt(0)}</div><div><div class="fc-nm">${f.nomeCompleto}</div><div class="fc-cg">${f.cargo}</div>${chipS}</div><div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px">${roleChip}</div></div>
     <div class="fc-st"><div class="fcs"><div class="fcs-v red">${horas}h</div><div class="fcs-l">Mês</div></div><div class="fcs"><div class="fcs-v" ${faltas>2?'style="color:var(--red)"':''}>${faltas}</div><div class="fcs-l">Faltas</div></div><div class="fcs"><div class="fcs-v blu">${fmtMin(extras)}</div><div class="fcs-l">Extras</div></div></div></div>`;
   }).join('');
   html+=`<div class="fc" onclick="openM('m-func')" style="border-style:dashed;display:flex;align-items:center;justify-content:center;min-height:130px;flex-direction:column;gap:6px;color:var(--w30)"><div style="font-size:24px">+</div><div style="font-size:12px;font-weight:600">Adicionar Funcionário</div></div>`;
@@ -1715,9 +1823,164 @@ async function renderRelUserSel(){
   if(!isAdmin()) return;
   try {
     if(USUARIOS_CACHE.length===0) { const lista=await api('GET','/api/usuarios'); if(lista) USUARIOS_CACHE=lista; }
-    const sel=document.getElementById('rel-user-sel');
-    sel.innerHTML=`<option value="">Todos os funcionários</option>`+USUARIOS_CACHE.map(u=>`<option value="${u.id}">${u.nomeCompleto}</option>`).join('');
+    const opts = `<option value="">Todos os funcionários</option>`+USUARIOS_CACHE.map(u=>`<option value="${u.id}">${u.nomeCompleto}</option>`).join('');
+    document.getElementById('rel-user-sel').innerHTML = opts;
+    document.getElementById('rprod-user-sel').innerHTML = opts;
   } catch(e) {}
+}
+
+function _buildMesOpts(count){
+  const now=new Date(); let opts='';
+  for(let i=0;i<count;i++){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const val=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+    opts+=`<option value="${val}">${MESES[d.getMonth()]} ${d.getFullYear()}</option>`;
+  }
+  return opts;
+}
+
+async function initRelatorios(){
+  if(!isAdmin()) return;
+  // Popula selects de mês
+  const mesOpts = _buildMesOpts(12);
+  document.getElementById('rel-mes-sel').innerHTML  = mesOpts;
+  document.getElementById('rprod-mes').innerHTML     = mesOpts;
+  document.getElementById('ratend-mes').innerHTML    = mesOpts;
+  await renderRelUserSel();
+  renderRelatorio();
+}
+
+/* ══ TABS DE RELATÓRIO ══ */
+function setRelTab(tab, el){
+  document.querySelectorAll('#page-relatorios .btn-filter').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('rel-sec-ponto').style.display  = tab==='ponto'  ? '' : 'none';
+  document.getElementById('rel-sec-prod').style.display   = tab==='prod'   ? '' : 'none';
+  document.getElementById('rel-sec-atend').style.display  = tab==='atend'  ? '' : 'none';
+  if(tab==='ponto')  renderRelatorio();
+  if(tab==='prod')   renderRelProd();
+  if(tab==='atend')  renderRelAtend();
+}
+
+/* ══ PRODUTIVIDADE (aba inline) ══ */
+function rprodModoChange(){
+  const modo=document.getElementById('rprod-modo').value;
+  document.getElementById('rprod-mes').style.display = modo==='mes' ? '' : 'none';
+  document.getElementById('rprod-dia').style.display = modo==='dia' ? '' : 'none';
+  renderRelProd();
+}
+
+async function renderRelProd(){
+  const userVal = document.getElementById('rprod-user-sel')?.value||'';
+  const modo    = document.getElementById('rprod-modo').value;
+  let inicio, fim;
+  if(modo==='mes'){
+    const val=document.getElementById('rprod-mes').value; if(!val) return;
+    const [ano,mes]=val.split('-').map(Number);
+    inicio=`${ano}-${pad(mes)}-01`;
+    fim=`${ano}-${pad(mes)}-${pad(new Date(ano,mes,0).getDate())}`;
+  } else {
+    const dia=document.getElementById('rprod-dia').value; if(!dia) return;
+    inicio=dia; fim=dia;
+  }
+  document.getElementById('rprod-stats').innerHTML='<div style="color:var(--w30);font-size:12px;padding:8px">Carregando...</div>';
+  document.getElementById('rprod-body').innerHTML='';
+  const fmtSeg=s=>{if(!s)return'—';const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return h>0?`${h}h ${pad(m)}m`:`${pad(m)}m ${pad(sec)}s`;};
+  try {
+    let lista=[];
+    if(userVal){
+      lista=await api('GET',`/api/chamados/produtividade?usuarioId=${userVal}&inicio=${inicio}&fim=${fim}`)||[];
+      document.getElementById('rprod-titulo').textContent=(USUARIOS_CACHE.find(u=>u.id==userVal)?.nomeCompleto||'Funcionário')+' — Produtividade';
+    } else {
+      // todos usuários
+      if(USUARIOS_CACHE.length===0){const l=await api('GET','/api/usuarios');if(l)USUARIOS_CACHE=l;}
+      const resultados=await Promise.all(USUARIOS_CACHE.map(u=>api('GET',`/api/chamados/produtividade?usuarioId=${u.id}&inicio=${inicio}&fim=${fim}`).then(r=>(r||[]).map(c=>({...c,_usuarioNome:u.nomeCompleto}))).catch(()=>[])));
+      lista=resultados.flat().sort((a,b)=>new Date(b.dataInicio)-new Date(a.dataInicio));
+      document.getElementById('rprod-titulo').textContent='Produtividade — Toda a Equipe';
+    }
+    const total=lista.length, concluidos=lista.filter(c=>c.status==='CONCLUIDO').length, abertos=total-concluidos;
+    const durTotal=lista.filter(c=>c.duracaoSegundos).reduce((s,c)=>s+c.duracaoSegundos,0);
+    const media=concluidos>0?Math.round(durTotal/concluidos):0;
+    document.getElementById('rprod-stats').innerHTML=`
+      <div style="background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:12px 18px;flex:1;min-width:110px;text-align:center"><div style="font-size:26px;font-weight:900;color:#7ab8f5">${total}</div><div style="font-size:11px;color:var(--w60);margin-top:4px">Total chamados</div></div>
+      <div style="background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:12px 18px;flex:1;min-width:110px;text-align:center"><div style="font-size:26px;font-weight:900;color:#4ade80">${concluidos}</div><div style="font-size:11px;color:var(--w60);margin-top:4px">Concluídos</div></div>
+      <div style="background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:12px 18px;flex:1;min-width:110px;text-align:center"><div style="font-size:26px;font-weight:900;color:var(--red)">${abertos}</div><div style="font-size:11px;color:var(--w60);margin-top:4px">Em aberto</div></div>
+      <div style="background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:12px 18px;flex:1;min-width:110px;text-align:center"><div style="font-size:18px;font-weight:900;color:#f5a623">${fmtSeg(media)}</div><div style="font-size:11px;color:var(--w60);margin-top:4px">Duração média</div></div>`;
+    if(!total){document.getElementById('rprod-body').innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--w30);padding:18px">Nenhum chamado no período</td></tr>';return;}
+    document.getElementById('rprod-body').innerHTML=lista.map(c=>{
+      const dt=c.dataInicio?new Date(c.dataInicio).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+      const stChip=c.status==='CONCLUIDO'?'<span class="chip cg">Concluído</span>':'<span class="chip cr">Aberto</span>';
+      const funcNome=c._usuarioNome||c.usuarioNome||'—';
+      return `<tr><td style="font-size:12px">${dt}</td><td style="color:var(--w60)">${funcNome}</td><td>${c.tipoDescricao||c.tipo}</td><td style="color:var(--w60)">${c.postoNome||'—'}</td><td style="font-size:12px">${fmtSeg(c.duracaoSegundos)}</td><td>${stChip}</td></tr>`;
+    }).join('');
+  } catch(e){document.getElementById('rprod-stats').innerHTML=`<div style="color:var(--red);font-size:12px;padding:8px">Erro: ${e.message}</div>`;}
+}
+
+function printRelProdPagina(){
+  const titulo=document.getElementById('rprod-titulo').textContent;
+  const stats=document.getElementById('rprod-stats').innerHTML;
+  const tbody=document.getElementById('rprod-body').innerHTML;
+  const w=window.open('','_blank','width=900,height=700');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${titulo}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>body{font-family:'Inter',sans-serif;font-size:13px;color:#000;background:#fff;padding:32px;}h1{font-family:'Montserrat',sans-serif;font-size:22px;font-weight:900;color:#cc1f1f;margin:0;}.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #cc1f1f;padding-bottom:14px;margin-bottom:20px;}.sub{font-size:11px;color:#666;margin-top:2px;}.stats{display:flex;gap:10px;margin-bottom:20px;}.stats>div{flex:1;background:#f5f5f5;border-radius:8px;padding:12px;text-align:center;}table{width:100%;border-collapse:collapse;font-size:12px;}th{text-align:left;background:#f3f3f3;padding:9px 11px;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#666;border-bottom:2px solid #ddd;}td{padding:9px 11px;border-bottom:1px solid #eee;}</style></head><body>
+  <div class="header"><div><h1>webBeagá</h1><div class="sub">Sistemas para Postos de Combustível</div></div><div style="text-align:right"><div style="font-weight:700;font-size:14px">${titulo}</div><div class="sub">Gerado em: ${new Date().toLocaleString('pt-BR')}</div></div></div>
+  <div class="stats">${stats.replace(/style="[^"]*"/g,'').replace(/class="[^"]*"/g,'')}</div>
+  <table><thead><tr><th>Data/Hora</th><th>Funcionário</th><th>Tipo</th><th>Posto</th><th>Duração</th><th>Status</th></tr></thead><tbody>${tbody}</tbody></table>
+  <script>window.onload=()=>window.print();<\/script></body></html>`);
+  w.document.close();
+}
+
+/* ══ ATENDIMENTOS (aba) ══ */
+async function renderRelAtend(){
+  const mesVal=document.getElementById('ratend-mes').value; if(!mesVal) return;
+  const [ano,mes]=mesVal.split('-').map(Number);
+  const inicio=`${ano}-${pad(mes)}-01`;
+  const fim=`${ano}-${pad(mes)}-${pad(new Date(ano,mes,0).getDate())}`;
+  document.getElementById('ratend-stats').innerHTML='';
+  document.getElementById('ratend-postos').innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--w30);padding:18px">Carregando...</td></tr>';
+  document.getElementById('ratend-tipos').innerHTML='';
+  try {
+    const data=await api('GET',`/api/relatorios/atendimentos?inicio=${inicio}&fim=${fim}`);
+    if(!data){document.getElementById('ratend-postos').innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--red);padding:18px">Erro ao carregar</td></tr>';return;}
+    const {total,concluidos,postosRanking,tiposRanking}=data;
+    const abertos=total-concluidos;
+    document.getElementById('ratend-stats').innerHTML=`
+      <div class="sc"><div class="sc-str" style="background:var(--blue)"></div><div class="sc-lbl">Total de Atendimentos</div><div class="sc-v">${total}</div><div class="sc-s">no período</div><div class="sc-ico">📞</div></div>
+      <div class="sc"><div class="sc-str" style="background:var(--green)"></div><div class="sc-lbl">Concluídos</div><div class="sc-v" style="color:var(--green)">${concluidos}</div><div class="sc-s">finalizados</div><div class="sc-ico">✅</div></div>
+      <div class="sc"><div class="sc-str" style="background:var(--red)"></div><div class="sc-lbl">Em Aberto</div><div class="sc-v" style="color:var(--red)">${abertos}</div><div class="sc-s">pendentes</div><div class="sc-ico">⏳</div></div>
+      <div class="sc"><div class="sc-str" style="background:var(--yellow)"></div><div class="sc-lbl">Postos Atendidos</div><div class="sc-v">${postosRanking.length}</div><div class="sc-s">postos únicos</div><div class="sc-ico">📍</div></div>`;
+    // Tabela postos
+    if(!postosRanking.length){
+      document.getElementById('ratend-postos').innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--w30);padding:18px">Nenhum atendimento com posto vinculado</td></tr>';
+    } else {
+      const maxP=postosRanking[0].total;
+      document.getElementById('ratend-postos').innerHTML=postosRanking.map((p,i)=>{
+        const pct=total>0?Math.round((p.total/total)*100):0;
+        const bar=maxP>0?Math.round((p.total/maxP)*100):0;
+        return `<tr><td style="font-weight:700;color:var(--w60);width:28px">${i+1}</td>
+          <td><b>${p.nome}</b><div class="pb" style="margin-top:5px;width:120px"><div class="pbf" style="width:${bar}%;background:var(--blue)"></div></div></td>
+          <td style="font-family:'Montserrat',sans-serif;font-weight:800;color:#7ab8f5">${p.total}</td>
+          <td><span class="chip cb2">${pct}%</span></td></tr>`;
+      }).join('');
+    }
+    // Tabela tipos
+    if(!tiposRanking.length){
+      document.getElementById('ratend-tipos').innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--w30);padding:18px">Nenhum chamado no período</td></tr>';
+    } else {
+      const maxT=tiposRanking[0].total;
+      const TIPO_CORES={'PDV':'var(--red)','MAQUININHA':'var(--green)','RETAGUARDA':'var(--blue)','IMPRESSORA':'var(--yellow)','INSTALACAO_PDV':'var(--purple)','SPED':'#f59e0b','CERTIFICADO':'#8b5cf6'};
+      document.getElementById('ratend-tipos').innerHTML=tiposRanking.map((t,i)=>{
+        const pct=total>0?Math.round((t.total/total)*100):0;
+        const bar=maxT>0?Math.round((t.total/maxT)*100):0;
+        const cor=TIPO_CORES[t.tipo]||'var(--w60)';
+        return `<tr><td style="font-weight:700;color:var(--w60);width:28px">${i+1}</td>
+          <td><b>${t.descricao}</b><div class="pb" style="margin-top:5px;width:120px"><div class="pbf" style="width:${bar}%;background:${cor}"></div></div></td>
+          <td style="font-family:'Montserrat',sans-serif;font-weight:800;color:var(--white)">${t.total}</td>
+          <td><span class="chip" style="background:rgba(255,255,255,.07);color:var(--w60)">${pct}%</span></td></tr>`;
+      }).join('');
+    }
+  } catch(e){document.getElementById('ratend-postos').innerHTML=`<tr><td colspan="4" style="text-align:center;color:var(--red);padding:18px">Erro: ${e.message}</td></tr>`;}
 }
 
 async function renderRelatorio(){
