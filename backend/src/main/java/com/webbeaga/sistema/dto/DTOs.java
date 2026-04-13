@@ -652,4 +652,40 @@ public class DTOs {
             r.success = false; r.message = msg; return r;
         }
     }
+
+    // ─── Relatório Atendimentos ───────────────────────────────
+
+    public static class RankingPostoItem {
+        private String nome;
+        private int total;
+        public String getNome()  { return nome; }
+        public int getTotal()    { return total; }
+        public void setNome(String v)  { this.nome = v; }
+        public void setTotal(int v)    { this.total = v; }
+    }
+
+    public static class RankingTipoItem {
+        private String tipo, descricao;
+        private int total;
+        public String getTipo()      { return tipo; }
+        public String getDescricao() { return descricao; }
+        public int getTotal()        { return total; }
+        public void setTipo(String v)      { this.tipo = v; }
+        public void setDescricao(String v) { this.descricao = v; }
+        public void setTotal(int v)        { this.total = v; }
+    }
+
+    public static class RelatorioAtendimentosResponse {
+        private int total, concluidos;
+        private java.util.List<RankingPostoItem> postosRanking;
+        private java.util.List<RankingTipoItem>  tiposRanking;
+        public int getTotal()      { return total; }
+        public int getConcluidos() { return concluidos; }
+        public java.util.List<RankingPostoItem> getPostosRanking() { return postosRanking; }
+        public java.util.List<RankingTipoItem>  getTiposRanking()  { return tiposRanking; }
+        public void setTotal(int v)      { this.total = v; }
+        public void setConcluidos(int v) { this.concluidos = v; }
+        public void setPostosRanking(java.util.List<RankingPostoItem> v) { this.postosRanking = v; }
+        public void setTiposRanking(java.util.List<RankingTipoItem> v)   { this.tiposRanking = v; }
+    }
 }

@@ -108,6 +108,48 @@ public class ChamadoService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public DTOs.RelatorioAtendimentosResponse getRelatorioAtendimentos(LocalDate inicio, LocalDate fim) {
+        LocalDateTime inicioTs = inicio.atStartOfDay();
+        LocalDateTime fimTs    = fim.plusDays(1).atStartOfDay();
+
+        List<Chamado> chamados = chamadoRepo.findAllByOrderByDataInicioDesc().stream()
+                .filter(c -> c.getDataInicio() != null
+                        && !c.getDataInicio().isBefore(inicioTs)
+                        && c.getDataInicio().isBefore(fimTs))
+                .collect(Collectors.toList());
+
+        int total      = chamados.size();
+        int concluidos = (int) chamados.stream().filter(c -> c.getStatus() == Chamado.StatusChamado.CONCLUIDO).count();
+
+        // Ranking postos
+        Map<String, Long> postosMap = chamados.stream()
+                .filter(c -> c.getPosto() != null)
+                .collect(Collectors.groupingBy(c -> c.getPosto().getNome(), Collectors.counting()));
+
+        List<DTOs.RankingPostoItem> postosRanking = postosMap.entrySet().stream()
+                .map(e -> { DTOs.RankingPostoItem item = new DTOs.RankingPostoItem(); item.setNome(e.getKey()); item.setTotal(e.getValue().intValue()); return item; })
+                .sorted(Comparator.comparingInt(DTOs.RankingPostoItem::getTotal).reversed())
+                .limit(10)
+                .collect(Collectors.toList());
+
+        // Ranking tipos
+        Map<String, Long> tiposMap = chamados.stream()
+                .collect(Collectors.groupingBy(c -> c.getTipo().name(), Collectors.counting()));
+
+        List<DTOs.RankingTipoItem> tiposRanking = tiposMap.entrySet().stream()
+                .map(e -> { DTOs.RankingTipoItem item = new DTOs.RankingTipoItem(); item.setTipo(e.getKey()); item.setDescricao(Chamado.TipoChamado.valueOf(e.getKey()).getDescricao()); item.setTotal(e.getValue().intValue()); return item; })
+                .sorted(Comparator.comparingInt(DTOs.RankingTipoItem::getTotal).reversed())
+                .collect(Collectors.toList());
+
+        DTOs.RelatorioAtendimentosResponse r = new DTOs.RelatorioAtendimentosResponse();
+        r.setTotal(total);
+        r.setConcluidos(concluidos);
+        r.setPostosRanking(postosRanking);
+        r.setTiposRanking(tiposRanking);
+        return r;
+    }
+
     @Transactional
     public void excluir(Long id) {
         chamadoRepo.deleteById(id);
