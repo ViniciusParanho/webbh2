@@ -585,11 +585,12 @@
 
       <!-- ══ ERROS / BUGS ══ -->
       <div class="page" id="page-erros">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-          <div id="erros-tabs" style="display:flex;gap:7px;flex:1">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+          <div id="erros-tabs" style="display:flex;gap:7px">
             <button class="btn-filter active" onclick="setErroTab('aberto',this)">Abertos</button>
             <button class="btn-filter" onclick="setErroTab('resolvido',this)">Resolvidos</button>
           </div>
+          <input type="text" id="erros-search" oninput="_pintarErros()" placeholder="🔍  Buscar erro..." style="flex:1;min-width:180px;background:var(--navy-card);border:1px solid var(--border2);border-radius:8px;padding:8px 13px;color:var(--white);font-family:var(--fb);font-size:13px;outline:none;">
           <button class="btn br" onclick="openM('m-erro')">+ Reportar Erro</button>
         </div>
         <div id="erros-list"></div>
@@ -2345,7 +2346,9 @@ const TIPO_ERRO_COLORS = { PDV:'#3b8beb', GERENCIAL:'#8b5cf6', OUTROS:'#f59e0b' 
 function _pintarErros(){
   const el = document.getElementById('erros-list');
   if(!el) return;
-  const lista = ERROS_CACHE.filter(e => e.status === (_erroTab==='aberto'?'ABERTO':'RESOLVIDO'));
+  const q = (document.getElementById('erros-search')?.value||'').toLowerCase().trim();
+  const lista = ERROS_CACHE.filter(e => e.status === (_erroTab==='aberto'?'ABERTO':'RESOLVIDO'))
+    .filter(e => !q || (e.titulo||'').toLowerCase().includes(q) || (e.descricao||'').toLowerCase().includes(q) || (e.tipoErro||'').toLowerCase().includes(q));
   if(!lista.length){
     el.innerHTML=`<div style="text-align:center;padding:48px;color:var(--w30)">${_erroTab==='aberto'?'🎉 Nenhum bug em aberto!':'Nenhum bug resolvido ainda'}</div>`;
     return;
