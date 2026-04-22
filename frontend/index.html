@@ -969,6 +969,29 @@
   </div>
 </div>
 
+<!-- Modal Transferir Chamado -->
+<div class="mo" id="m-transferir">
+  <div class="mbox" style="max-width:420px">
+    <div class="mh" style="padding:20px 24px">
+      <div><div class="mt" style="font-size:16px">↪ Transferir Chamado</div>
+      <div style="font-size:12px;color:var(--w30);margin-top:2px">Selecione o funcionário que receberá este chamado</div></div>
+      <button class="mc" onclick="closeM('m-transferir')">✕</button>
+    </div>
+    <div class="mb" style="padding:22px 24px">
+      <div class="ff">
+        <label>Transferir para</label>
+        <select id="transferir-usuario-id" style="width:100%;background:var(--navy-light);border:1px solid var(--border2);border-radius:7px;padding:10px 12px;color:var(--white);font-family:var(--fb);font-size:13px;outline:none">
+          <option value="">Selecione um funcionário...</option>
+        </select>
+      </div>
+    </div>
+    <div class="mf" style="padding:14px 24px">
+      <button class="btn bg" onclick="closeM('m-transferir')">Cancelar</button>
+      <button class="btn br" style="padding:10px 22px;font-size:14px" onclick="confirmarTransferencia()">↪ Transferir</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Chamado -->
 <div class="mo" id="m-chamado">
   <div class="mbox wide" style="max-width:580px">
@@ -2713,9 +2736,11 @@ function _pintarChamados(){
     const desc=c.descricao?`<div class="cham-desc">${c.descricao}</div>`:'';
     if(c.status==='ABERTO'){
       const secs=_segsDecorridos(c.dataInicio);
-      const finBtn=(c.usuarioId===currentUser?.id)?`<button class="btn" style="font-size:11px;padding:5px 12px;background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.25)" onclick="finalizarChamado(${c.id})">✓ Finalizar</button>`:'';
+      const canAct=(c.usuarioId===currentUser?.id||isAdmin());
+      const finBtn=canAct?`<button class="btn" style="font-size:11px;padding:5px 12px;background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.25)" onclick="finalizarChamado(${c.id})">✓ Finalizar</button>`:'';
+      const trfBtn=canAct?`<button class="btn" style="font-size:11px;padding:5px 12px;background:rgba(59,139,235,.12);color:#7ab8f5;border:1px solid rgba(59,139,235,.25)" onclick="abrirTransferencia(${c.id})">↪ Transferir</button>`:'';
       return `<div class="cham-card" style="border-left:3px solid ${cor}">
-        <div class="cham-top">${tipoBadge}${userBadge}${postoBadge}<span class="cham-timer" data-inicio="${c.dataInicio}" data-id="${c.id}">${_fmtDuracao(secs)}</span><div style="margin-left:auto">${finBtn}</div></div>
+        <div class="cham-top">${tipoBadge}${userBadge}${postoBadge}<span class="cham-timer" data-inicio="${c.dataInicio}" data-id="${c.id}">${_fmtDuracao(secs)}</span><div style="margin-left:auto;display:flex;gap:6px">${trfBtn}${finBtn}</div></div>
         ${desc}<div class="cham-meta">Início: ${new Date(c.dataInicio).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
       </div>`;
     } else {
@@ -2806,6 +2831,37 @@ async function finalizarChamado(id){
     await Promise.all([renderDashboard(), renderRanking()]);
     toast('Chamado finalizado!','ok');
   } catch(e){ toast(e.message||'Erro ao finalizar chamado','er'); }
+}
+
+let _transferirChamadoId = null;
+
+async function abrirTransferencia(id){
+  _transferirChamadoId = id;
+  if(USUARIOS_CACHE.length===0){
+    try { const lista=await api('GET','/api/usuarios'); if(lista) USUARIOS_CACHE=lista; } catch(e){}
+  }
+  const chamado = CHAMADOS_CACHE.find(c=>c.id===id);
+  const sel = document.getElementById('transferir-usuario-id');
+  sel.innerHTML = '<option value="">Selecione um funcionário...</option>' +
+    USUARIOS_CACHE.filter(u=>u.ativo!==false && u.id!==chamado?.usuarioId)
+      .map(u=>`<option value="${u.id}">${u.nomeCompleto}</option>`).join('');
+  openM('m-transferir');
+}
+
+async function confirmarTransferencia(){
+  const novoId = document.getElementById('transferir-usuario-id').value;
+  if(!novoId){ toast('Selecione um funcionário','er'); return; }
+  try {
+    const atualizado = await api('PATCH',`/api/chamados/${_transferirChamadoId}/transferir`,{usuarioId:Number(novoId)});
+    if(atualizado){
+      const idx=CHAMADOS_CACHE.findIndex(c=>c.id===_transferirChamadoId);
+      if(idx>=0) CHAMADOS_CACHE[idx]=atualizado;
+    }
+    closeM('m-transferir');
+    _pintarChamados();
+    await renderDashboard();
+    toast('Chamado transferido!','ok');
+  } catch(e){ toast(e.message||'Erro ao transferir chamado','er'); }
 }
 
 async function excluirChamado(id){

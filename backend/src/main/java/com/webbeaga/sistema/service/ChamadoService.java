@@ -151,6 +151,22 @@ public class ChamadoService {
     }
 
     @Transactional
+    public DTOs.ChamadoResponse transferir(Long id, Long novoUsuarioId, String username) {
+        Chamado c = chamadoRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Chamado não encontrado"));
+        Usuario solicitante = usuarioRepo.findByUsername(username).orElseThrow();
+        boolean isAdmin = solicitante.getRole() != null && solicitante.getRole().equals("ADMIN");
+        if (!isAdmin && !c.getUsuario().getId().equals(solicitante.getId()))
+            throw new RuntimeException("Sem permissão para transferir este chamado");
+        if (c.getStatus() != Chamado.StatusChamado.ABERTO)
+            throw new RuntimeException("Apenas chamados em aberto podem ser transferidos");
+        Usuario novoUsuario = usuarioRepo.findById(novoUsuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuário destino não encontrado"));
+        c.setUsuario(novoUsuario);
+        return toResponse(chamadoRepo.save(c));
+    }
+
+    @Transactional
     public void excluir(Long id) {
         chamadoRepo.deleteById(id);
     }

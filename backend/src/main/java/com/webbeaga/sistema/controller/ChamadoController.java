@@ -61,6 +61,15 @@ public class ChamadoController {
         return ResponseEntity.ok(DTOs.ApiResponse.ok(chamadoService.listarProdutividade(usuarioId, inicio, fim)));
     }
 
+    @PatchMapping("/{id}/transferir")
+    public ResponseEntity<DTOs.ApiResponse<DTOs.ChamadoResponse>> transferir(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, Long> body,
+            Authentication auth) {
+        Long novoUsuarioId = body.get("usuarioId");
+        return ResponseEntity.ok(DTOs.ApiResponse.ok(chamadoService.transferir(id, novoUsuarioId, auth.getName())));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<DTOs.ApiResponse<Void>> excluir(@PathVariable Long id) {
         chamadoService.excluir(id);
