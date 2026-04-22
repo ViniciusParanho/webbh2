@@ -69,8 +69,18 @@ public class DashboardService {
             pontoHojeList.add(item);
         }
 
+        // Mapa de chamados abertos por usuário
+        Map<Long, Integer> chamadosAbertosMap = new HashMap<>();
+        for (Object[] row : chamadoRepo.findChamadosAbertosCountPorUsuario()) {
+            chamadosAbertosMap.put((Long) row[0], ((Number) row[1]).intValue());
+        }
+        for (PontoHojeItem item : pontoHojeList) {
+            Integer count = chamadosAbertosMap.get(item.getUsuarioId());
+            if (count != null && count > 0) item.setChamadosAbertos(count);
+        }
+
         // Calcula tempo ocioso: online (sem saída) + sem chamado aberto
-        List<Long> emAtendimentoIds = chamadoRepo.findUsuarioIdsEmAtendimento();
+        List<Long> emAtendimentoIds = new java.util.ArrayList<>(chamadosAbertosMap.keySet());
         List<Long> onlineOciososIds = horaEntradaMap.keySet().stream()
             .filter(id -> !emAtendimentoIds.contains(id))
             .collect(Collectors.toList());

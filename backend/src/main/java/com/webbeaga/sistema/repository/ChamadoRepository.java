@@ -17,6 +17,9 @@ public interface ChamadoRepository extends JpaRepository<Chamado, Long> {
     @Query("SELECT c.usuario.id FROM Chamado c WHERE c.status = 'ABERTO'")
     List<Long> findUsuarioIdsEmAtendimento();
 
+    @Query("SELECT c.usuario.id, COUNT(c) FROM Chamado c WHERE c.status = 'ABERTO' GROUP BY c.usuario.id")
+    List<Object[]> findChamadosAbertosCountPorUsuario();
+
     @Query("SELECT c.usuario.id, MAX(c.dataInicio) FROM Chamado c WHERE c.usuario.id IN :uids AND c.dataInicio >= :inicioDia GROUP BY c.usuario.id")
     List<Object[]> findUltimoInicioChamadoHoje(@Param("uids") List<Long> uids, @Param("inicioDia") java.time.LocalDateTime inicioDia);
 

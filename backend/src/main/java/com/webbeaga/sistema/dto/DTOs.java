@@ -354,18 +354,21 @@ public class DTOs {
         private Long usuarioId;
         private String nome, status, entrada, saida;
         private Long minutosOcioso;
-        public Long getUsuarioId()      { return usuarioId; }
-        public String getNome()         { return nome; }
-        public String getStatus()       { return status; }
-        public String getEntrada()      { return entrada; }
-        public String getSaida()        { return saida; }
-        public Long getMinutosOcioso()  { return minutosOcioso; }
-        public void setUsuarioId(Long v)     { this.usuarioId = v; }
-        public void setNome(String v)        { this.nome = v; }
-        public void setStatus(String v)      { this.status = v; }
-        public void setEntrada(String v)     { this.entrada = v; }
-        public void setSaida(String v)       { this.saida = v; }
-        public void setMinutosOcioso(Long v) { this.minutosOcioso = v; }
+        private Integer chamadosAbertos;
+        public Long getUsuarioId()          { return usuarioId; }
+        public String getNome()             { return nome; }
+        public String getStatus()           { return status; }
+        public String getEntrada()          { return entrada; }
+        public String getSaida()            { return saida; }
+        public Long getMinutosOcioso()      { return minutosOcioso; }
+        public Integer getChamadosAbertos() { return chamadosAbertos; }
+        public void setUsuarioId(Long v)         { this.usuarioId = v; }
+        public void setNome(String v)            { this.nome = v; }
+        public void setStatus(String v)          { this.status = v; }
+        public void setEntrada(String v)         { this.entrada = v; }
+        public void setSaida(String v)           { this.saida = v; }
+        public void setMinutosOcioso(Long v)     { this.minutosOcioso = v; }
+        public void setChamadosAbertos(Integer v){ this.chamadosAbertos = v; }
     }
 
     // ─── Relatório ────────────────────────────────────────────

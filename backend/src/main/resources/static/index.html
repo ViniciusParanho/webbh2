@@ -1280,8 +1280,9 @@ function _pintarPontoHoje(pontoHoje){
     if (!u.entrada || s==='AUSENTE') chip='<span class="chip cr">✕ Ausente</span>';
     else if (s==='CONCLUIDO'||u.saida) chip='<span class="chip" style="background:rgba(255,255,255,.08);color:var(--w60)">↩ Saiu</span>';
     else chip='<span class="chip cg">✓ Presente</span>';
-    const emAtend=_EM_ATEND_IDS.includes(u.usuarioId);
-    const atend=emAtend?'<span class="chip" style="background:rgba(59,139,235,.14);color:#7ab8f5;margin-left:4px">📞 Em atendimento</span>':'';
+    const emAtend=u.chamadosAbertos>0;
+    const atendLabel=u.chamadosAbertos>1?`📞 ${u.chamadosAbertos} atendimentos`:'📞 Em atendimento';
+    const atend=emAtend?`<span class="chip" style="background:rgba(59,139,235,.14);color:#7ab8f5;margin-left:4px">${atendLabel}</span>`:'';
     let ociosoChip='';
     if(!emAtend && u.minutosOcioso!=null && u.entrada && !u.saida){
       const min=u.minutosOcioso;
