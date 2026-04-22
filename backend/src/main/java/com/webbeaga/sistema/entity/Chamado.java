@@ -53,6 +53,9 @@ public class Chamado {
     @Column(nullable = false)
     private StatusChamado status = StatusChamado.ABERTO;
 
+    @Column(name = "ticket_quality", length = 100)
+    private String ticketQuality;
+
     public Long getId()                    { return id; }
     public TipoChamado getTipo()           { return tipo; }
     public String getDescricao()           { return descricao; }
@@ -62,6 +65,7 @@ public class Chamado {
     public LocalDateTime getDataFim()      { return dataFim; }
     public Long getDuracaoSegundos()       { return duracaoSegundos; }
     public StatusChamado getStatus()       { return status; }
+    public String getTicketQuality()       { return ticketQuality; }
 
     public void setId(Long v)                    { this.id = v; }
     public void setTipo(TipoChamado v)           { this.tipo = v; }
@@ -72,4 +76,5 @@ public class Chamado {
     public void setDataFim(LocalDateTime v)      { this.dataFim = v; }
     public void setDuracaoSegundos(Long v)       { this.duracaoSegundos = v; }
     public void setStatus(StatusChamado v)       { this.status = v; }
+    public void setTicketQuality(String v)       { this.ticketQuality = v; }
 }

@@ -992,6 +992,27 @@
   </div>
 </div>
 
+<!-- Modal Vincular Ticket Quality -->
+<div class="mo" id="m-ticket">
+  <div class="mbox" style="max-width:400px">
+    <div class="mh" style="padding:20px 24px">
+      <div><div class="mt" style="font-size:16px">🎫 Vincular Ticket Quality</div>
+      <div style="font-size:12px;color:var(--w30);margin-top:2px">Informe o número do ticket da Quality</div></div>
+      <button class="mc" onclick="closeM('m-ticket')">✕</button>
+    </div>
+    <div class="mb" style="padding:22px 24px">
+      <div class="ff">
+        <label>Número do Ticket</label>
+        <input type="text" id="ticket-numero" placeholder="Ex: TK-12345" style="background:var(--navy-light);border:1px solid var(--border2);border-radius:7px;padding:10px 12px;color:var(--white);font-family:var(--fb);font-size:13px;outline:none;width:100%">
+      </div>
+    </div>
+    <div class="mf" style="padding:14px 24px">
+      <button class="btn bg" onclick="closeM('m-ticket')">Cancelar</button>
+      <button class="btn br" style="padding:10px 22px;font-size:14px" onclick="confirmarTicket()">🎫 Vincular</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Chamado -->
 <div class="mo" id="m-chamado">
   <div class="mbox wide" style="max-width:580px">
@@ -1030,9 +1051,13 @@
           <div id="cham-posto-sel-label" style="font-size:11px;color:#4ade80;margin-top:4px;display:none"></div>
         </div>
       </div>
+      <div class="ff" style="margin-bottom:12px">
+        <label>Ticket Quality <span style="color:var(--w30);font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+        <input type="text" id="cham-ticket" placeholder="Ex: TK-12345" style="background:var(--navy-light);border:1px solid var(--border2);border-radius:7px;padding:10px 12px;color:var(--white);font-family:var(--fb);font-size:13px;outline:none;width:100%">
+      </div>
       <div class="ff" style="margin-bottom:0">
         <label>Descrição do Chamado <span style="color:var(--w30);font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
-        <textarea id="cham-desc" rows="5" placeholder="Descreva o chamado: qual o problema, situação, mensagens de erro..." style="resize:vertical;min-height:110px"></textarea>
+        <textarea id="cham-desc" rows="4" placeholder="Descreva o chamado: qual o problema, situação, mensagens de erro..." style="resize:vertical;min-height:90px"></textarea>
       </div>
     </div>
     <div class="mf" style="padding:14px 24px">
@@ -2730,24 +2755,27 @@ function _pintarChamados(){
   }
   el.innerHTML=lista.map(c=>{
     const cor=CHAM_COLORS[c.tipo]||'var(--w60)';
+    const idBadge=`<span style="font-size:10px;color:var(--w30);font-weight:600;letter-spacing:.4px">#${c.id}</span>`;
     const tipoBadge=`<span class="chip" style="background:${cor}22;color:${cor};border:1px solid ${cor}44">${c.tipoDescricao||c.tipo}</span>`;
     const userBadge=`<span class="chip cb2">👤 ${c.usuarioNome||'—'}</span>`;
     const postoBadge=c.postoNome?`<span class="chip" style="background:rgba(255,255,255,.06);color:var(--w60)">📍 ${c.postoNome}</span>`:'';
+    const ticketBadge=c.ticketQuality?`<span class="chip" style="background:rgba(168,85,247,.12);color:#c084fc;border:1px solid rgba(168,85,247,.25)">🎫 ${c.ticketQuality}</span>`:'';
     const desc=c.descricao?`<div class="cham-desc">${c.descricao}</div>`:'';
     if(c.status==='ABERTO'){
       const secs=_segsDecorridos(c.dataInicio);
       const canAct=(c.usuarioId===currentUser?.id||isAdmin());
       const finBtn=canAct?`<button class="btn" style="font-size:11px;padding:5px 12px;background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.25)" onclick="finalizarChamado(${c.id})">✓ Finalizar</button>`:'';
       const trfBtn=canAct?`<button class="btn" style="font-size:11px;padding:5px 12px;background:rgba(59,139,235,.12);color:#7ab8f5;border:1px solid rgba(59,139,235,.25)" onclick="abrirTransferencia(${c.id})">↪ Transferir</button>`:'';
+      const tktBtn=canAct?`<button class="btn" style="font-size:11px;padding:5px 12px;background:rgba(168,85,247,.12);color:#c084fc;border:1px solid rgba(168,85,247,.25)" onclick="abrirTicket(${c.id},'${c.ticketQuality||''}')">🎫 ${c.ticketQuality?'Editar Ticket':'Vincular Ticket'}</button>`:'';
       return `<div class="cham-card" style="border-left:3px solid ${cor}">
-        <div class="cham-top">${tipoBadge}${userBadge}${postoBadge}<span class="cham-timer" data-inicio="${c.dataInicio}" data-id="${c.id}">${_fmtDuracao(secs)}</span><div style="margin-left:auto;display:flex;gap:6px">${trfBtn}${finBtn}</div></div>
+        <div class="cham-top">${idBadge}${tipoBadge}${userBadge}${postoBadge}${ticketBadge}<span class="cham-timer" data-inicio="${c.dataInicio}" data-id="${c.id}">${_fmtDuracao(secs)}</span><div style="margin-left:auto;display:flex;gap:6px">${tktBtn}${trfBtn}${finBtn}</div></div>
         ${desc}<div class="cham-meta">Início: ${new Date(c.dataInicio).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
       </div>`;
     } else {
       const dur=`<span style="color:#fbbf24;font-weight:600">⏱ ${_fmtDuracao(c.duracaoSegundos)}</span>`;
       const delBtn=(c.usuarioId===currentUser?.id||isAdmin())?`<button class="btn bg" style="font-size:11px;padding:4px 9px" onclick="excluirChamado(${c.id})">✕</button>`:'';
       return `<div class="cham-card" style="border-left:3px solid ${cor};opacity:.85">
-        <div class="cham-top">${tipoBadge}${userBadge}${postoBadge}<div style="margin-left:auto;display:flex;gap:7px;align-items:center">${dur}${delBtn}</div></div>
+        <div class="cham-top">${idBadge}${tipoBadge}${userBadge}${postoBadge}${ticketBadge}<div style="margin-left:auto;display:flex;gap:7px;align-items:center">${dur}${delBtn}</div></div>
         ${desc}<div class="cham-meta">Início: ${new Date(c.dataInicio).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · Fim: ${new Date(c.dataFim).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · ${new Date(c.dataFim).toLocaleDateString('pt-BR')}</div>
       </div>`;
     }
@@ -2801,10 +2829,12 @@ async function saveChamado(){
   const postoId=document.getElementById('cham-posto-id')?.value;
   if(!tipo){ toast('Selecione o tipo','er'); return; }
   try {
-    const novo=await api('POST','/api/chamados',{tipo,descricao:desc||null,postoId:postoId?parseInt(postoId):null});
+    const ticket=document.getElementById('cham-ticket')?.value?.trim();
+    const novo=await api('POST','/api/chamados',{tipo,descricao:desc||null,postoId:postoId?parseInt(postoId):null,ticketQuality:ticket||null});
     if(novo){ CHAMADOS_CACHE.unshift(novo); }
     closeM('m-chamado');
     document.getElementById('cham-desc').value='';
+    document.getElementById('cham-ticket').value='';
     document.getElementById('cham-posto-id').value='';
     document.getElementById('cham-posto-search').value='';
     _chamadoTab='aberto';
@@ -2831,6 +2861,28 @@ async function finalizarChamado(id){
     await Promise.all([renderDashboard(), renderRanking()]);
     toast('Chamado finalizado!','ok');
   } catch(e){ toast(e.message||'Erro ao finalizar chamado','er'); }
+}
+
+let _ticketChamadoId = null;
+
+function abrirTicket(id, ticketAtual){
+  _ticketChamadoId = id;
+  document.getElementById('ticket-numero').value = ticketAtual || '';
+  openM('m-ticket');
+}
+
+async function confirmarTicket(){
+  const ticket = document.getElementById('ticket-numero').value.trim();
+  try {
+    const atualizado = await api('PATCH',`/api/chamados/${_ticketChamadoId}/ticket`,{ticket: ticket||null});
+    if(atualizado){
+      const idx=CHAMADOS_CACHE.findIndex(c=>c.id===_ticketChamadoId);
+      if(idx>=0) CHAMADOS_CACHE[idx]=atualizado;
+    }
+    closeM('m-ticket');
+    _pintarChamados();
+    toast(ticket?'Ticket vinculado!':'Ticket removido','ok');
+  } catch(e){ toast(e.message||'Erro ao vincular ticket','er'); }
 }
 
 let _transferirChamadoId = null;

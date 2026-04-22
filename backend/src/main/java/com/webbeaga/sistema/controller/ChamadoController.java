@@ -61,6 +61,14 @@ public class ChamadoController {
         return ResponseEntity.ok(DTOs.ApiResponse.ok(chamadoService.listarProdutividade(usuarioId, inicio, fim)));
     }
 
+    @PatchMapping("/{id}/ticket")
+    public ResponseEntity<DTOs.ApiResponse<DTOs.ChamadoResponse>> vincularTicket(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, String> body,
+            Authentication auth) {
+        return ResponseEntity.ok(DTOs.ApiResponse.ok(chamadoService.vincularTicket(id, body.get("ticket"), auth.getName())));
+    }
+
     @PatchMapping("/{id}/transferir")
     public ResponseEntity<DTOs.ApiResponse<DTOs.ChamadoResponse>> transferir(
             @PathVariable Long id,

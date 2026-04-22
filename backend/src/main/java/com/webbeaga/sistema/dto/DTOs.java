@@ -522,18 +522,21 @@ public class DTOs {
         @NotBlank private String tipo;
         private String descricao;
         private Long postoId;
-        public String getTipo()      { return tipo; }
-        public String getDescricao() { return descricao; }
-        public Long getPostoId()     { return postoId; }
-        public void setTipo(String v)      { this.tipo = v; }
-        public void setDescricao(String v) { this.descricao = v; }
-        public void setPostoId(Long v)     { this.postoId = v; }
+        private String ticketQuality;
+        public String getTipo()           { return tipo; }
+        public String getDescricao()      { return descricao; }
+        public Long getPostoId()          { return postoId; }
+        public String getTicketQuality()  { return ticketQuality; }
+        public void setTipo(String v)           { this.tipo = v; }
+        public void setDescricao(String v)      { this.descricao = v; }
+        public void setPostoId(Long v)          { this.postoId = v; }
+        public void setTicketQuality(String v)  { this.ticketQuality = v; }
     }
 
     public static class ChamadoResponse {
         private Long id;
         private String tipo, tipoDescricao, descricao, status;
-        private String usuarioNome, postoNome;
+        private String usuarioNome, postoNome, ticketQuality;
         private Long usuarioId, postoId;
         private LocalDateTime dataInicio, dataFim;
         private Long duracaoSegundos;
@@ -549,6 +552,7 @@ public class DTOs {
         public LocalDateTime getDataInicio()   { return dataInicio; }
         public LocalDateTime getDataFim()      { return dataFim; }
         public Long getDuracaoSegundos()       { return duracaoSegundos; }
+        public String getTicketQuality()       { return ticketQuality; }
         public void setId(Long v)                    { this.id = v; }
         public void setTipo(String v)                { this.tipo = v; }
         public void setTipoDescricao(String v)       { this.tipoDescricao = v; }
@@ -561,6 +565,7 @@ public class DTOs {
         public void setDataInicio(LocalDateTime v)   { this.dataInicio = v; }
         public void setDataFim(LocalDateTime v)      { this.dataFim = v; }
         public void setDuracaoSegundos(Long v)       { this.duracaoSegundos = v; }
+        public void setTicketQuality(String v)       { this.ticketQuality = v; }
     }
 
     // ─── Ranking ──────────────────────────────────────────────

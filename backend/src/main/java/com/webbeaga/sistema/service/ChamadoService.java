@@ -70,6 +70,8 @@ public class ChamadoService {
         }
         c.setDataInicio(LocalDateTime.now());
         c.setStatus(Chamado.StatusChamado.ABERTO);
+        if (req.getTicketQuality() != null && !req.getTicketQuality().isBlank())
+            c.setTicketQuality(req.getTicketQuality().trim());
         return toResponse(chamadoRepo.save(c));
     }
 
@@ -151,6 +153,18 @@ public class ChamadoService {
     }
 
     @Transactional
+    public DTOs.ChamadoResponse vincularTicket(Long id, String ticket, String username) {
+        Chamado c = chamadoRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Chamado não encontrado"));
+        Usuario solicitante = usuarioRepo.findByUsername(username).orElseThrow();
+        boolean isAdmin = solicitante.getRole() != null && solicitante.getRole().equals("ADMIN");
+        if (!isAdmin && !c.getUsuario().getId().equals(solicitante.getId()))
+            throw new RuntimeException("Sem permissão");
+        c.setTicketQuality(ticket == null || ticket.isBlank() ? null : ticket.trim());
+        return toResponse(chamadoRepo.save(c));
+    }
+
+    @Transactional
     public DTOs.ChamadoResponse transferir(Long id, Long novoUsuarioId, String username) {
         Chamado c = chamadoRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Chamado não encontrado"));
@@ -187,6 +201,7 @@ public class ChamadoService {
         r.setDataInicio(c.getDataInicio());
         r.setDataFim(c.getDataFim());
         r.setDuracaoSegundos(c.getDuracaoSegundos());
+        r.setTicketQuality(c.getTicketQuality());
         return r;
     }
 }
