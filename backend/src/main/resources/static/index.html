@@ -573,11 +573,12 @@
 
       <!-- ══ CHAMADOS ══ -->
       <div class="page" id="page-chamados">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-          <div id="cham-tabs" style="display:flex;gap:7px;flex:1">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+          <div id="cham-tabs" style="display:flex;gap:7px">
             <button class="btn-filter active" onclick="setChamadoTab('aberto',this)">Em Andamento</button>
             <button class="btn-filter" onclick="setChamadoTab('concluido',this)">Concluídos</button>
           </div>
+          <input type="text" id="cham-search" oninput="_pintarChamados()" placeholder="🔍  Buscar por #ID, posto ou ticket..." style="flex:1;min-width:200px;display:none;background:var(--navy-card);border:1px solid var(--border2);border-radius:8px;padding:8px 13px;color:var(--white);font-family:var(--fb);font-size:13px;outline:none;">
           <button class="btn br" onclick="abrirNovoChamado()">+ Novo Chamado</button>
         </div>
         <div id="cham-list"></div>
@@ -2730,6 +2731,8 @@ function setChamadoTab(tab,btn){
   _chamadoTab=tab;
   document.querySelectorAll('#cham-tabs .btn-filter').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  const searchEl=document.getElementById('cham-search');
+  if(searchEl){ searchEl.style.display=tab==='concluido'?'block':'none'; searchEl.value=''; }
   _pintarChamados();
 }
 
@@ -2747,7 +2750,12 @@ function _pintarChamados(){
   const el=document.getElementById('cham-list');
   if(!el) return;
   const abertos=CHAMADOS_CACHE.filter(c=>c.status==='ABERTO'&&c.usuarioId===currentUser?.id);
-  const concluidos=CHAMADOS_CACHE.filter(c=>c.status==='CONCLUIDO');
+  const q=(document.getElementById('cham-search')?.value||'').toLowerCase().trim();
+  const concluidos=CHAMADOS_CACHE.filter(c=>{
+    if(c.status!=='CONCLUIDO') return false;
+    if(!q) return true;
+    return String(c.id).includes(q)||(c.postoNome||'').toLowerCase().includes(q)||(c.ticketQuality||'').toLowerCase().includes(q)||(c.descricao||'').toLowerCase().includes(q)||(c.usuarioNome||'').toLowerCase().includes(q);
+  });
   const lista=_chamadoTab==='aberto'?abertos:concluidos;
   if(lista.length===0){
     el.innerHTML=`<div style="text-align:center;padding:40px;color:var(--w30)">${_chamadoTab==='aberto'?'Nenhum chamado em andamento':'Nenhum chamado concluído'}</div>`;
@@ -2773,9 +2781,11 @@ function _pintarChamados(){
       </div>`;
     } else {
       const dur=`<span style="color:#fbbf24;font-weight:600">⏱ ${_fmtDuracao(c.duracaoSegundos)}</span>`;
-      const delBtn=(c.usuarioId===currentUser?.id||isAdmin())?`<button class="btn bg" style="font-size:11px;padding:4px 9px" onclick="excluirChamado(${c.id})">✕</button>`:'';
+      const canAct2=(c.usuarioId===currentUser?.id||isAdmin());
+      const reabBtn=canAct2?`<button class="btn" style="font-size:11px;padding:5px 12px;background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.25)" onclick="reabrirChamado(${c.id})">↩ Reabrir</button>`:'';
+      const delBtn=canAct2?`<button class="btn bg" style="font-size:11px;padding:4px 9px" onclick="excluirChamado(${c.id})">✕</button>`:'';
       return `<div class="cham-card" style="border-left:3px solid ${cor};opacity:.85">
-        <div class="cham-top">${idBadge}${tipoBadge}${userBadge}${postoBadge}${ticketBadge}<div style="margin-left:auto;display:flex;gap:7px;align-items:center">${dur}${delBtn}</div></div>
+        <div class="cham-top">${idBadge}${tipoBadge}${userBadge}${postoBadge}${ticketBadge}<div style="margin-left:auto;display:flex;gap:7px;align-items:center">${dur}${reabBtn}${delBtn}</div></div>
         ${desc}<div class="cham-meta">Início: ${new Date(c.dataInicio).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · Fim: ${new Date(c.dataFim).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · ${new Date(c.dataFim).toLocaleDateString('pt-BR')}</div>
       </div>`;
     }
@@ -2861,6 +2871,20 @@ async function finalizarChamado(id){
     await Promise.all([renderDashboard(), renderRanking()]);
     toast('Chamado finalizado!','ok');
   } catch(e){ toast(e.message||'Erro ao finalizar chamado','er'); }
+}
+
+async function reabrirChamado(id){
+  try {
+    const atualizado=await api('PATCH',`/api/chamados/${id}/reabrir`);
+    if(atualizado){
+      const idx=CHAMADOS_CACHE.findIndex(c=>c.id===id);
+      if(idx>=0) CHAMADOS_CACHE[idx]=atualizado;
+    }
+    _pintarChamados();
+    _iniciarTimerChamados();
+    await renderDashboard();
+    toast('Chamado reaberto!','ok');
+  } catch(e){ toast(e.message||'Erro ao reabrir chamado','er'); }
 }
 
 let _ticketChamadoId = null;

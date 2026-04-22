@@ -153,6 +153,20 @@ public class ChamadoService {
     }
 
     @Transactional
+    public DTOs.ChamadoResponse reabrir(Long id, String username) {
+        Chamado c = chamadoRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Chamado não encontrado"));
+        Usuario solicitante = usuarioRepo.findByUsername(username).orElseThrow();
+        boolean isAdmin = solicitante.getRole() != null && solicitante.getRole().equals("ADMIN");
+        if (!isAdmin && !c.getUsuario().getId().equals(solicitante.getId()))
+            throw new RuntimeException("Sem permissão");
+        c.setStatus(Chamado.StatusChamado.ABERTO);
+        c.setDataFim(null);
+        c.setDuracaoSegundos(null);
+        return toResponse(chamadoRepo.save(c));
+    }
+
+    @Transactional
     public DTOs.ChamadoResponse vincularTicket(Long id, String ticket, String username) {
         Chamado c = chamadoRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Chamado não encontrado"));

@@ -61,6 +61,12 @@ public class ChamadoController {
         return ResponseEntity.ok(DTOs.ApiResponse.ok(chamadoService.listarProdutividade(usuarioId, inicio, fim)));
     }
 
+    @PatchMapping("/{id}/reabrir")
+    public ResponseEntity<DTOs.ApiResponse<DTOs.ChamadoResponse>> reabrir(
+            @PathVariable Long id, Authentication auth) {
+        return ResponseEntity.ok(DTOs.ApiResponse.ok(chamadoService.reabrir(id, auth.getName())));
+    }
+
     @PatchMapping("/{id}/ticket")
     public ResponseEntity<DTOs.ApiResponse<DTOs.ChamadoResponse>> vincularTicket(
             @PathVariable Long id,
