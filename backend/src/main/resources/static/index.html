@@ -350,6 +350,15 @@
     .sys-bg{display:none;}
     .content{padding:14px 12px;}
 
+    /* Prevent any element from causing horizontal overflow */
+    .main{width:100%;max-width:100vw;overflow-x:hidden;}
+    .content{width:100%;max-width:100%;}
+    .ph{width:100%;max-width:100%;overflow:hidden;}
+    .ph-time{font-size:38px;letter-spacing:-1px;word-break:break-all;}
+    .ph-date{font-size:12px;}
+    .ph-btns{width:100%;}
+    .bpt{width:100%;box-sizing:border-box;}
+
     /* Grids */
     .srow{grid-template-columns:repeat(2,1fr);gap:10px;}
     .g2,.g2b{grid-template-columns:1fr;}
@@ -395,9 +404,9 @@
     .sc{padding:12px 10px;}
     .sc-v{font-size:19px;}
     .sc-lbl{font-size:9px;}
-    .ph{padding:18px 12px;}
-    .ph-time{font-size:36px;letter-spacing:-1px;}
-    .ph-date{font-size:12px;margin-bottom:16px;}
+    .ph{padding:16px 12px;}
+    .ph-time{font-size:30px;letter-spacing:-1px;}
+    .ph-date{font-size:11px;margin-bottom:14px;}
     .bpt{padding:12px 10px;font-size:12px;}
     .tb-clock{display:none;}
     .fgrid{grid-template-columns:1fr;}
