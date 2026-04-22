@@ -2749,7 +2749,7 @@ function _segsDecorridos(dataInicio){
 function _pintarChamados(){
   const el=document.getElementById('cham-list');
   if(!el) return;
-  const abertos=CHAMADOS_CACHE.filter(c=>c.status==='ABERTO'&&c.usuarioId===currentUser?.id);
+  const abertos=CHAMADOS_CACHE.filter(c=>c.status==='ABERTO'&&(isAdmin()||c.usuarioId===currentUser?.id));
   const q=(document.getElementById('cham-search')?.value||'').toLowerCase().trim();
   const concluidos=CHAMADOS_CACHE.filter(c=>{
     if(c.status!=='CONCLUIDO') return false;
