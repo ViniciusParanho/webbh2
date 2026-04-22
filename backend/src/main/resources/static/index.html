@@ -1266,6 +1266,11 @@ async function _renderPontoHoje(pontoHoje){
   _pintarPontoHoje(pontoHoje);
 }
 
+function _fmtOcioso(min){
+  if(min==null) return '';
+  if(min<60) return `${min}min`;
+  return `${Math.floor(min/60)}h${String(min%60).padStart(2,'0')}min`;
+}
 function _pintarPontoHoje(pontoHoje){
   const list = document.getElementById('dash-ponto-list');
   if(!list) return;
@@ -1275,10 +1280,16 @@ function _pintarPontoHoje(pontoHoje){
     if (!u.entrada || s==='AUSENTE') chip='<span class="chip cr">✕ Ausente</span>';
     else if (s==='CONCLUIDO'||u.saida) chip='<span class="chip" style="background:rgba(255,255,255,.08);color:var(--w60)">↩ Saiu</span>';
     else chip='<span class="chip cg">✓ Presente</span>';
-    const atend=_EM_ATEND_IDS.includes(u.usuarioId)
-      ?'<span class="chip" style="background:rgba(59,139,235,.14);color:#7ab8f5;margin-left:4px">📞 Em atendimento</span>':'';
+    const emAtend=_EM_ATEND_IDS.includes(u.usuarioId);
+    const atend=emAtend?'<span class="chip" style="background:rgba(59,139,235,.14);color:#7ab8f5;margin-left:4px">📞 Em atendimento</span>':'';
+    let ociosoChip='';
+    if(!emAtend && u.minutosOcioso!=null && u.entrada && !u.saida){
+      const min=u.minutosOcioso;
+      const cor = min>=30?'color:#f87171':min>=10?'color:#fb923c':'color:#facc15';
+      ociosoChip=`<span class="chip" style="background:rgba(250,204,21,.08);${cor};margin-left:4px">⏱ Ocioso ${_fmtOcioso(min)}</span>`;
+    }
     return `<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 9px;background:var(--navy-light);border-radius:7px">
-      <div class="fr"><div class="av av-s" style="background:var(--red)">${(u.nome||'?').charAt(0)}</div><span style="font-size:13px;font-weight:500">${(u.nome||'').split(' ')[0]}</span>${atend}</div>
+      <div class="fr"><div class="av av-s" style="background:var(--red)">${(u.nome||'?').charAt(0)}</div><span style="font-size:13px;font-weight:500">${(u.nome||'').split(' ')[0]}</span>${atend}${ociosoChip}</div>
       ${chip}</div>`;
   }).join('');
 }
