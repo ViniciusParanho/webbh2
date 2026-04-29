@@ -48,6 +48,12 @@ public class RegistroPonto {
 
     private String observacao;
 
+    @Column(name = "latitude_entrada")
+    private Double latitudeEntrada;
+
+    @Column(name = "longitude_entrada")
+    private Double longitudeEntrada;
+
     @Column(name = "criado_em")
     private LocalDateTime criadoEm = LocalDateTime.now();
 
@@ -83,6 +89,8 @@ public class RegistroPonto {
     public Integer getMinutosDevendo()         { return minutosDevendo; }
     public StatusPonto getStatus()             { return status; }
     public String getObservacao()              { return observacao; }
+    public Double getLatitudeEntrada()         { return latitudeEntrada; }
+    public Double getLongitudeEntrada()        { return longitudeEntrada; }
 
     public void setUsuario(Usuario v)          { this.usuario = v; }
     public void setData(LocalDate v)           { this.data = v; }
@@ -95,6 +103,8 @@ public class RegistroPonto {
     public void setMinutosDevendo(Integer v)   { this.minutosDevendo = v; }
     public void setStatus(StatusPonto v)       { this.status = v; }
     public void setObservacao(String v)        { this.observacao = v; }
+    public void setLatitudeEntrada(Double v)   { this.latitudeEntrada = v; }
+    public void setLongitudeEntrada(Double v)  { this.longitudeEntrada = v; }
 
     public enum StatusPonto { PENDENTE, EM_CURSO, NORMAL, HORA_EXTRA, PARCIAL, AUSENCIA }
 }

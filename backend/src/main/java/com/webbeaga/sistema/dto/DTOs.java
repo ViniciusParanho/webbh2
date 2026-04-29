@@ -107,8 +107,14 @@ public class DTOs {
 
     public static class BaterPontoRequest {
         @NotBlank private String tipo;
-        public String getTipo() { return tipo; }
-        public void setTipo(String v) { this.tipo = v; }
+        private Double latitude;
+        private Double longitude;
+        public String getTipo()         { return tipo; }
+        public Double getLatitude()     { return latitude; }
+        public Double getLongitude()    { return longitude; }
+        public void setTipo(String v)   { this.tipo = v; }
+        public void setLatitude(Double v)  { this.latitude = v; }
+        public void setLongitude(Double v) { this.longitude = v; }
     }
 
     public static class PontoResponse {
@@ -117,6 +123,7 @@ public class DTOs {
         private String horaEntrada, horaSaidaAlmoco, horaRetornoAlmoco, horaSaida;
         private Integer totalMinutos, minutosExtras, minutosDevendo;
         private String status, observacao, usuarioNome;
+        private Double latitudeEntrada, longitudeEntrada;
 
         public PontoResponse() {}
 
@@ -132,7 +139,9 @@ public class DTOs {
             p.minutosExtras  = r.getMinutosExtras();
             p.minutosDevendo = r.getMinutosDevendo();
             p.status         = r.getStatus() != null ? r.getStatus().name() : null;
-            p.observacao    = r.getObservacao();
+            p.observacao        = r.getObservacao();
+            p.latitudeEntrada   = r.getLatitudeEntrada();
+            p.longitudeEntrada  = r.getLongitudeEntrada();
             if (r.getUsuario() != null) {
                 p.usuarioId  = r.getUsuario().getId();
                 p.usuarioNome= r.getUsuario().getNomeCompleto();
@@ -140,23 +149,25 @@ public class DTOs {
             return p;
         }
 
-        public Long getId()                  { return id; }
-        public Long getUsuarioId()           { return usuarioId; }
-        public LocalDate getData()           { return data; }
-        public String getHoraEntrada()       { return horaEntrada; }
-        public String getHoraSaidaAlmoco()   { return horaSaidaAlmoco; }
-        public String getHoraRetornoAlmoco() { return horaRetornoAlmoco; }
-        public String getHoraSaida()         { return horaSaida; }
-        public Integer getTotalMinutos()     { return totalMinutos; }
-        public Integer getMinutosExtras()    { return minutosExtras; }
-        public Integer getMinutosDevendo()   { return minutosDevendo; }
-        public String getStatus()            { return status; }
-        public String getObservacao()        { return observacao; }
-        public String getUsuarioNome()       { return usuarioNome; }
-        public void setData(LocalDate v)     { this.data = v; }
-        public void setStatus(String v)      { this.status = v; }
-        public void setUsuarioId(Long v)     { this.usuarioId = v; }
-        public void setUsuarioNome(String v) { this.usuarioNome = v; }
+        public Long getId()                    { return id; }
+        public Long getUsuarioId()             { return usuarioId; }
+        public LocalDate getData()             { return data; }
+        public String getHoraEntrada()         { return horaEntrada; }
+        public String getHoraSaidaAlmoco()     { return horaSaidaAlmoco; }
+        public String getHoraRetornoAlmoco()   { return horaRetornoAlmoco; }
+        public String getHoraSaida()           { return horaSaida; }
+        public Integer getTotalMinutos()       { return totalMinutos; }
+        public Integer getMinutosExtras()      { return minutosExtras; }
+        public Integer getMinutosDevendo()     { return minutosDevendo; }
+        public String getStatus()              { return status; }
+        public String getObservacao()          { return observacao; }
+        public String getUsuarioNome()         { return usuarioNome; }
+        public Double getLatitudeEntrada()     { return latitudeEntrada; }
+        public Double getLongitudeEntrada()    { return longitudeEntrada; }
+        public void setData(LocalDate v)       { this.data = v; }
+        public void setStatus(String v)        { this.status = v; }
+        public void setUsuarioId(Long v)       { this.usuarioId = v; }
+        public void setUsuarioNome(String v)   { this.usuarioNome = v; }
     }
 
     // ─── Evento ──────────────────────────────────────────────

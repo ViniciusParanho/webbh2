@@ -21,7 +21,7 @@ public class PontoService {
     }
 
     @Transactional
-    public PontoResponse baterPonto(Usuario usuario, String tipo) {
+    public PontoResponse baterPonto(Usuario usuario, String tipo, Double latitude, Double longitude) {
         LocalDate hoje = LocalDate.now();
         RegistroPonto ponto = pontoRepo.findByUsuarioIdAndData(usuario.getId(), hoje)
             .orElseGet(() -> {
@@ -40,6 +40,8 @@ public class PontoService {
                     throw new IllegalStateException("Entrada ja registrada hoje");
                 ponto.setHoraEntrada(agora);
                 ponto.setStatus(RegistroPonto.StatusPonto.EM_CURSO);
+                ponto.setLatitudeEntrada(latitude);
+                ponto.setLongitudeEntrada(longitude);
             }
             case "SAIDA_ALMOCO" -> {
                 if (ponto.getHoraEntrada() == null)

@@ -471,6 +471,7 @@
     <div class="ni" onclick="sp('ponto',this)"><span class="ni-ico">⏱</span> Meu Ponto</div>
     <div class="sb-sec admin-only">Gestão</div>
     <div class="ni admin-only" onclick="sp('funcionarios',this)"><span class="ni-ico">👥</span> Funcionários</div>
+    <div class="ni admin-only" onclick="sp('localizacao',this)"><span class="ni-ico">📍</span> Localização</div>
     <div class="ni admin-only" onclick="sp('relatorios',this)"><span class="ni-ico">📊</span> Relatórios</div>
     <div class="ni" onclick="sp('agenda',this)"><span class="ni-ico">📅</span> Agenda <span class="nb" id="nb-agenda">0</span></div>
     <div class="sb-sec">Operacional</div>
@@ -643,6 +644,15 @@
           <button class="btn br" onclick="openM('m-erro')">+ Reportar Erro</button>
         </div>
         <div id="erros-list"></div>
+      </div>
+
+      <!-- ══ LOCALIZAÇÃO ══ -->
+      <div class="page" id="page-localizacao">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+          <div style="font-size:13px;color:var(--w30)">Localização de entrada dos funcionários hoje</div>
+          <button class="btn bg" style="font-size:12px" onclick="renderLocalizacoes()">↻ Atualizar</button>
+        </div>
+        <div id="loc-list"></div>
       </div>
 
       <!-- ══ RELATÓRIOS ══ -->
@@ -1247,8 +1257,8 @@ function doLogout(){
 document.addEventListener('keydown',e=>{ if(e.key==='Enter'&&document.getElementById('login-screen').style.display!=='none') doLogin(); });
 
 /* ══════════ NAV ══════════ */
-const PT={ dashboard:'Dashboard', ponto:'Meu Ponto', funcionarios:'Funcionários', relatorios:'Relatórios', agenda:'Agenda de Eventos', acessos:'Acessos Remotos', links:'Links Úteis', chamados:'Chamados', erros:'Erros / Bugs' };
-const PB={ dashboard:'', ponto:'Imprimir Ponto', funcionarios:'+ Novo Funcionário', relatorios:'', agenda:'', acessos:'+ Novo Posto', links:'', chamados:'', erros:'' };
+const PT={ dashboard:'Dashboard', ponto:'Meu Ponto', funcionarios:'Funcionários', localizacao:'Localização dos Funcionários', relatorios:'Relatórios', agenda:'Agenda de Eventos', acessos:'Acessos Remotos', links:'Links Úteis', chamados:'Chamados', erros:'Erros / Bugs' };
+const PB={ dashboard:'', ponto:'Imprimir Ponto', funcionarios:'+ Novo Funcionário', localizacao:'', relatorios:'', agenda:'', acessos:'+ Novo Posto', links:'', chamados:'', erros:'' };
 function sp(id,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
@@ -1259,6 +1269,7 @@ function sp(id,el){
   tbBtn.textContent=PB[id]||'';
   tbBtn.style.display=(id==='agenda'||!PB[id])?'none':'';
   if(id==='relatorios') initRelatorios();
+  if(id==='localizacao') renderLocalizacoes();
   closeSidebar();
 }
 function tbAction(){
@@ -1409,12 +1420,57 @@ function updateBtnStates(pt){
 
 async function btp(tipo){
   try {
-    await api('POST', '/api/ponto/bater', { tipo });
+    let latitude = null, longitude = null;
+    if(tipo === 'ENTRADA' && navigator.geolocation){
+      try {
+        const pos = await new Promise((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, {timeout:8000})
+        );
+        latitude  = pos.coords.latitude;
+        longitude = pos.coords.longitude;
+      } catch(_){ /* usuário negou ou sem GPS — registra sem localização */ }
+    }
+    await api('POST', '/api/ponto/bater', { tipo, latitude, longitude });
     const lb={ENTRADA:'Entrada registrada',SAIDA_ALMOCO:'Saída para almoço registrada',RETORNO_ALMOCO:'Retorno registrado',SAIDA:'Saída registrada'};
     toast(lb[tipo]||'Ponto registrado','ok');
     await loadTodayPonto();
     await renderDashboard();
   } catch(e) { toast(e.message||'Erro ao registrar ponto','er'); }
+}
+
+/* ══════════ LOCALIZAÇÃO ══════════ */
+async function renderLocalizacoes(){
+  const el = document.getElementById('loc-list');
+  if(!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--w30)">Carregando...</div>';
+  try {
+    const lista = await api('GET','/api/ponto/localizacoes-hoje');
+    if(!lista||!lista.length){
+      el.innerHTML='<div style="text-align:center;padding:48px;color:var(--w30)">📍 Nenhum funcionário bateu ponto hoje ainda.</div>';
+      return;
+    }
+    el.innerHTML = lista.map(p => {
+      const temLoc = p.latitudeEntrada != null && p.longitudeEntrada != null;
+      const lat = temLoc ? p.latitudeEntrada.toFixed(6) : null;
+      const lon = temLoc ? p.longitudeEntrada.toFixed(6) : null;
+      const mapsUrl = temLoc ? `https://www.google.com/maps?q=${p.latitudeEntrada},${p.longitudeEntrada}` : null;
+      const statusColor = {NORMAL:'#4ade80',HORA_EXTRA:'#fbbf24',PARCIAL:'#f87171',EM_CURSO:'#60a5fa',PENDENTE:'var(--w30)',AUSENCIA:'#f87171'}[p.status]||'var(--w60)';
+      return `<div style="background:var(--navy-card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:10px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div style="width:42px;height:42px;border-radius:50%;background:var(--navy-light);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-size:16px;color:var(--white);flex-shrink:0">${(p.usuarioNome||'?')[0].toUpperCase()}</div>
+        <div style="flex:1;min-width:160px">
+          <div style="font-family:var(--fh);font-size:14px;font-weight:700;color:var(--white);margin-bottom:3px">${p.usuarioNome||'—'}</div>
+          <div style="font-size:12px;color:var(--w30)">Entrada: <b style="color:var(--w60)">${p.horaEntrada||'—'}</b> &nbsp;·&nbsp; <span style="color:${statusColor}">${p.status||'—'}</span></div>
+        </div>
+        <div style="text-align:right;min-width:180px">
+          ${temLoc
+            ? `<div style="font-size:12px;color:var(--w30);margin-bottom:6px">📍 ${lat}, ${lon}</div>
+               <a href="${mapsUrl}" target="_blank" style="display:inline-block;padding:6px 14px;background:rgba(59,139,235,.15);border:1px solid rgba(59,139,235,.35);border-radius:7px;color:#60a5fa;font-size:12px;font-weight:600;text-decoration:none">Ver no Google Maps ↗</a>`
+            : `<div style="font-size:12px;color:var(--w30)">📵 Localização não disponível</div>`
+          }
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e){ el.innerHTML='<div style="text-align:center;padding:40px;color:#f87171">Erro ao carregar localizações.</div>'; }
 }
 
 async function renderHistorico(){
