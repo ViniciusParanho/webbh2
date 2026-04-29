@@ -163,7 +163,7 @@ public class DTOs {
 
     public static class EventoRequest {
         @NotNull  private Evento.TipoEvento tipo;
-        @NotBlank private String rede;
+        private String rede;
         @NotBlank private String posto;
         @NotNull  private LocalDate dataEvento;
         private LocalTime horaEvento;

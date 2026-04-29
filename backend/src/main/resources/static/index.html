@@ -845,10 +845,9 @@
     <div class="mh"><div class="mt">Agendar Evento</div><button class="mc" onclick="closeM('m-evento')">✕</button></div>
     <div class="mb">
       <div class="ff"><label>Tipo de Evento</label><select id="ev-tipo" onchange="toggleEventoFields()"><option value="IMPLANTACAO">Implantação</option><option value="INSTALACAO_PDV">Instalação de Sistema PDV</option><option value="TREINAMENTO">Treinamento</option><option value="CO_WORK">Co-work</option></select></div>
-      <div id="ev-posto-rede-wrap"><div class="f2"><div class="ff"><label>Rede</label><select id="ev-rede"><option>Rede Ipiranga</option><option>Rede Shell</option><option>Rede BR / Petrobras</option><option>Rede Raízen</option></select></div><div class="ff"><label>Posto</label><input type="text" id="ev-posto" placeholder="Nome do posto"></div></div></div>
+      <div id="ev-posto-rede-wrap"><div class="ff"><label>Posto</label><input type="text" id="ev-posto" placeholder="Nome do posto"></div></div>
       <div class="f2"><div class="ff"><label>Data</label><input type="date" id="ev-data"></div><div class="ff"><label>Horário</label><input type="time" id="ev-hora" value="09:00"></div></div>
       <div class="ff" id="ev-resp-wrap"><label>Funcionários Responsáveis</label><div id="ev-resp-list" style="background:var(--navy-light);border:1px solid var(--border2);border-radius:7px;padding:8px;max-height:150px;overflow-y:auto;display:flex;flex-direction:column;gap:4px"></div></div>
-      <div class="ff"><label>Observações</label><textarea id="ev-obs" rows="3" placeholder="Detalhes, equipamentos necessários..."></textarea></div>
     </div>
     <div class="mf"><button class="btn bg" onclick="closeM('m-evento')">Cancelar</button><button class="btn br" onclick="saveEvento()">Agendar</button></div>
   </div>
@@ -1897,20 +1896,18 @@ function toggleEventoFields(){
 async function saveEvento(){
   if(!isAdmin()){ toast('Apenas administradores podem agendar eventos','er'); return; }
   const tipo=document.getElementById('ev-tipo').value;
-  const rede=document.getElementById('ev-rede').value;
   const posto=document.getElementById('ev-posto').value.trim();
   const data=document.getElementById('ev-data').value;
   const hora=document.getElementById('ev-hora').value;
-  const obs=document.getElementById('ev-obs').value;
   const responsaveisIds=Array.from(document.querySelectorAll('#ev-resp-list input[type="checkbox"]:checked')).map(cb=>parseInt(cb.value));
   const cowork=(tipo==='CO_WORK');
   if(!cowork&&!posto){ toast('Informe o nome do posto','er'); return; }
   if(!data){ toast('Selecione uma data','er'); return; }
   try {
-    await api('POST','/api/eventos',{ tipo, rede:cowork?'—':rede, posto:cowork?'Co-work':posto, dataEvento:data, horaEvento:hora||null, responsaveisIds:cowork?[]:responsaveisIds, observacao:obs });
+    await api('POST','/api/eventos',{ tipo, posto:cowork?'Co-work':posto, dataEvento:data, horaEvento:hora||null, responsaveisIds:cowork?[]:responsaveisIds });
     closeM('m-evento'); await renderEventos(); await renderDashboard();
     toast('Evento agendado com sucesso!','ok');
-    document.getElementById('ev-posto').value=''; document.getElementById('ev-obs').value='';
+    document.getElementById('ev-posto').value='';
     document.querySelectorAll('#ev-resp-list input[type="checkbox"]').forEach(cb=>cb.checked=false);
   } catch(e) { toast(e.message||'Erro ao agendar evento','er'); }
 }
