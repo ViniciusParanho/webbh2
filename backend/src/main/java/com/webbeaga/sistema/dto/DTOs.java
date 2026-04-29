@@ -420,26 +420,10 @@ public class DTOs {
         public void setScript(String v)  { this.script = v; }
     }
 
-    public static class AnexoResponse {
-        private Long id;
-        private String nomeOriginal, contentType, url, tipo;
-        public Long getId()              { return id; }
-        public String getNomeOriginal()  { return nomeOriginal; }
-        public String getContentType()   { return contentType; }
-        public String getUrl()           { return url; }
-        public String getTipo()          { return tipo; }
-        public void setId(Long v)              { this.id = v; }
-        public void setNomeOriginal(String v)  { this.nomeOriginal = v; }
-        public void setContentType(String v)   { this.contentType = v; }
-        public void setUrl(String v)           { this.url = v; }
-        public void setTipo(String v)          { this.tipo = v; }
-    }
-
     public static class ErroResponse {
         private Long id, criadorId;
         private String titulo, descricao, solucao, script, status, criadorNome, tipoErro;
         private LocalDateTime dataCriacao;
-        private List<AnexoResponse> anexosBug, anexosSolucao;
 
         public Long getId()                        { return id; }
         public Long getCriadorId()                 { return criadorId; }
@@ -451,8 +435,6 @@ public class DTOs {
         public String getCriadorNome()             { return criadorNome; }
         public String getTipoErro()                { return tipoErro; }
         public LocalDateTime getDataCriacao()      { return dataCriacao; }
-        public List<AnexoResponse> getAnexosBug()     { return anexosBug; }
-        public List<AnexoResponse> getAnexosSolucao() { return anexosSolucao; }
         public void setId(Long v)                       { this.id = v; }
         public void setCriadorId(Long v)                { this.criadorId = v; }
         public void setTitulo(String v)                 { this.titulo = v; }
@@ -463,8 +445,6 @@ public class DTOs {
         public void setCriadorNome(String v)            { this.criadorNome = v; }
         public void setTipoErro(String v)               { this.tipoErro = v; }
         public void setDataCriacao(LocalDateTime v)     { this.dataCriacao = v; }
-        public void setAnexosBug(List<AnexoResponse> v)     { this.anexosBug = v; }
-        public void setAnexosSolucao(List<AnexoResponse> v) { this.anexosSolucao = v; }
     }
 
     // ─── Plantão ──────────────────────────────────────────────

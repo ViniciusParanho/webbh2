@@ -284,12 +284,6 @@
   .erro-solucao{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:8px;padding:12px 14px;margin-top:10px;}
   .erro-solucao-titulo{font-size:11px;font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
   .erro-script{background:var(--navy-dark);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-family:'Courier New',monospace;font-size:12px;color:#7ab8f5;margin-top:8px;white-space:pre-wrap;overflow-x:auto;}
-  .upload-area{border:2px dashed var(--border2);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:all .15s;position:relative;}
-  .upload-area:hover{border-color:var(--red);background:rgba(204,31,31,.04);}
-  .upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
-  .anexo-preview{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;}
-  .anexo-thumb{width:70px;height:70px;border-radius:7px;object-fit:cover;border:1px solid var(--border);}
-
   /* ── AVISOS ── */
   .aviso-card{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:var(--r);padding:13px 15px;margin-bottom:9px;position:relative;}
   .aviso-titulo{font-family:var(--fh);font-size:13px;font-weight:700;color:#fbbf24;margin-bottom:4px;}
@@ -926,16 +920,6 @@
         <label>Descrição do Problema</label>
         <textarea id="er-desc" rows="5" placeholder="Descreva o que acontece, em qual situação ocorre, qual a mensagem de erro exibida..." style="min-height:110px;resize:vertical"></textarea>
       </div>
-      <div class="ff" style="margin-bottom:0">
-        <label>Imagens do Erro <span style="color:var(--w30);font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
-        <div class="upload-area" onclick="document.getElementById('er-imgs').click()">
-          <input type="file" id="er-imgs" multiple accept="image/*" style="display:none" onchange="_previewErroImgs(this)">
-          <div id="er-imgs-preview" style="display:flex;flex-direction:column;align-items:center;gap:6px">
-            <span style="font-size:28px">📷</span>
-            <span style="font-size:12px;color:var(--w30)">Clique para anexar imagens do erro</span>
-          </div>
-        </div>
-      </div>
     </div>
     <div class="mf" style="padding:14px 24px">
       <button class="btn bg" onclick="closeM('m-erro')">Cancelar</button>
@@ -967,12 +951,6 @@
       <input type="hidden" id="sol-erro-id">
       <div class="ff"><label>Solução Aplicada</label><textarea id="sol-texto" rows="4" placeholder="Descreva como o problema foi resolvido..."></textarea></div>
       <div class="ff"><label>Script SQL <span style="color:var(--w30);font-weight:400;text-transform:none">(opcional)</span></label><textarea id="sol-script" rows="3" placeholder="SELECT * FROM ... (se necessário)" style="font-family:'Courier New',monospace;font-size:12px"></textarea></div>
-      <div class="ff"><label>Imagem <span style="color:var(--w30);font-weight:400;text-transform:none">(opcional)</span></label>
-        <label class="upload-area" for="sol-img-input" id="sol-img-preview" style="cursor:pointer;min-height:70px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap">
-          <span style="font-size:24px">📷</span><span style="font-size:12px;color:var(--w30)">Clique para anexar imagem</span>
-        </label>
-        <input type="file" id="sol-img-input" accept="image/*" style="display:none" onchange="_previewSolImg(this)">
-      </div>
     </div>
     <div class="mf"><button class="btn bg" onclick="closeM('m-solucao')">Cancelar</button><button class="btn br" onclick="salvarSolucao()">Salvar Solução</button></div>
   </div>
@@ -2439,7 +2417,6 @@ function _atualizarDashboardPlantoes(){
 
 /* ══════════ ERROS / BUGS ══════════ */
 let _erroTab = 'aberto';
-let _erroImgsFiles = [];
 
 async function renderErros(){
   try {
@@ -2475,8 +2452,6 @@ function _pintarErros(){
       ? '<span class="chip cg">✓ Resolvido</span>'
       : '<span class="chip cr">● Aberto</span>';
     const desc = er.descricao ? `<div class="erro-desc">${er.descricao}</div>` : '';
-    const imgCount = (er.anexosBug||[]).length;
-    const imgBadge = imgCount>0 ? `<span>📷 ${imgCount} imagem${imgCount>1?'s':''}</span>` : '';
     return `<div class="erro-card${er.status==='RESOLVIDO'?' resolvido':''}" onclick="verErro(${er.id})">
       <div class="erro-top">
         <div class="erro-titulo">${er.titulo}</div>
@@ -2486,7 +2461,6 @@ function _pintarErros(){
       <div class="erro-meta">
         <span>👤 ${er.criadorNome||'—'}</span>
         <span>🕐 ${new Date(er.dataCriacao).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'})}</span>
-        ${imgBadge}
         ${er.status==='RESOLVIDO'&&er.solucao?'<span style="color:#4ade80">✓ Com solução</span>':''}
       </div>
     </div>`;
@@ -2504,14 +2478,8 @@ function verErro(id){
 
   let body = '';
   if(er.descricao) body += `<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--w30);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Descrição</div><div style="font-size:13px;color:var(--w60);line-height:1.6">${er.descricao}</div></div>`;
-  const imgs = er.anexosBug||[];
-  if(imgs.length){
-    body += `<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--w30);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Imagens do Erro</div><div class="anexo-preview">${imgs.map(a=>`<img src="${a.url}" class="anexo-thumb" onclick="window.open('${a.url}')" title="${a.nomeOriginal}">`).join('')}</div></div>`;
-  }
   if(er.solucao){
-    const solImgs = er.anexosSolucao||[];
-    const solImgsHtml = solImgs.length ? `<div class="anexo-preview" style="margin-top:10px">${solImgs.map(a=>`<img src="${a.url}" class="anexo-thumb" onclick="window.open('${a.url}')" title="${a.nomeOriginal}">`).join('')}</div>` : '';
-    body += `<div class="erro-solucao"><div class="erro-solucao-titulo">✅ Solução Aplicada</div><div style="font-size:13px;color:var(--w60);line-height:1.6">${er.solucao}</div>${er.script?`<div class="erro-script">${er.script}</div>`:''}${solImgsHtml}</div>`;
+    body += `<div class="erro-solucao"><div class="erro-solucao-titulo">✅ Solução Aplicada</div><div style="font-size:13px;color:var(--w60);line-height:1.6">${er.solucao}</div>${er.script?`<div class="erro-script">${er.script}</div>`:''}</div>`;
   }
   body += `<div style="font-size:11px;color:var(--w30);margin-top:14px">Reportado por <b style="color:var(--w60)">${er.criadorNome||'—'}</b> em ${new Date(er.dataCriacao).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>`;
   document.getElementById('ver-erro-body').innerHTML = body;
@@ -2527,27 +2495,12 @@ function verErro(id){
   openM('m-ver-erro');
 }
 
-let _solImgFile = null;
 function abrirSolucao(id){
   closeM('m-ver-erro');
   document.getElementById('sol-erro-id').value = id;
   document.getElementById('sol-texto').value = '';
   document.getElementById('sol-script').value = '';
-  document.getElementById('sol-img-input').value = '';
-  _solImgFile = null;
-  document.getElementById('sol-img-preview').innerHTML = '<span style="font-size:24px">📷</span><span style="font-size:12px;color:var(--w30)">Clique para anexar imagem</span>';
   openM('m-solucao');
-}
-
-function _previewSolImg(input){
-  _solImgFile = input.files[0] || null;
-  const prev = document.getElementById('sol-img-preview');
-  if(!_solImgFile){
-    prev.innerHTML='<span style="font-size:24px">📷</span><span style="font-size:12px;color:var(--w30)">Clique para anexar imagem</span>';
-    return;
-  }
-  const url = URL.createObjectURL(_solImgFile);
-  prev.innerHTML = `<img src="${url}" class="anexo-thumb" style="max-height:120px;border-radius:6px"><span style="font-size:11px;color:var(--w30)">${_solImgFile.name}</span>`;
 }
 
 async function salvarSolucao(){
@@ -2558,34 +2511,12 @@ async function salvarSolucao(){
   try {
     const atualizado = await api('PATCH',`/api/erros/${id}/solucao`,{solucao,script:script||null});
     if(atualizado){
-      if(_solImgFile){
-        const fd = new FormData();
-        fd.append('file', _solImgFile);
-        fd.append('tipo', 'SOLUCAO');
-        await fetch(`/api/erros/${id}/anexos`,{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd});
-        const atualizado2 = await api('GET',`/api/erros/${id}`);
-        if(atualizado2){ const idx=ERROS_CACHE.findIndex(e=>e.id===parseInt(id)); if(idx>=0) ERROS_CACHE[idx]=atualizado2; }
-      } else {
-        const idx=ERROS_CACHE.findIndex(e=>e.id===parseInt(id)); if(idx>=0) ERROS_CACHE[idx]=atualizado;
-      }
+      const idx=ERROS_CACHE.findIndex(e=>e.id===parseInt(id)); if(idx>=0) ERROS_CACHE[idx]=atualizado;
     }
     closeM('m-solucao');
     _pintarErros();
     toast('Solução salva!','ok');
   } catch(e){ toast(e.message||'Erro ao salvar solução','er'); }
-}
-
-function _previewErroImgs(input){
-  _erroImgsFiles = Array.from(input.files);
-  const prev = document.getElementById('er-imgs-preview');
-  if(!_erroImgsFiles.length){
-    prev.innerHTML='<span style="font-size:28px">📷</span><span style="font-size:12px;color:var(--w30)">Clique para anexar imagens do erro</span>';
-    return;
-  }
-  prev.innerHTML = `<div class="anexo-preview">${_erroImgsFiles.map(f=>{
-    const url=URL.createObjectURL(f);
-    return `<img src="${url}" class="anexo-thumb">`;
-  }).join('')}</div><span style="font-size:11px;color:var(--w30)">${_erroImgsFiles.length} imagem(ns) selecionada(s)</span>`;
 }
 
 async function saveErro(){
@@ -2595,21 +2526,10 @@ async function saveErro(){
   if(!titulo){ toast('Informe o título do erro','er'); return; }
   try {
     const novo = await api('POST','/api/erros',{titulo,descricao:desc||null,tipoErro:tipo});
-    if(novo){
-      // upload images if any
-      for(const file of _erroImgsFiles){
-        const fd = new FormData();
-        fd.append('file',file);
-        fd.append('tipo','BUG');
-        await fetch(`/api/erros/${novo.id}/anexos`,{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd});
-      }
-      await renderErros();
-    }
+    if(novo) await renderErros();
     closeM('m-erro');
     document.getElementById('er-titulo').value='';
     document.getElementById('er-desc').value='';
-    _erroImgsFiles=[];
-    document.getElementById('er-imgs-preview').innerHTML='<span style="font-size:28px">📷</span><span style="font-size:12px;color:var(--w30)">Clique para anexar imagens do erro</span>';
     toast('Bug reportado!','ok');
   } catch(e){ toast(e.message||'Erro ao reportar bug','er'); }
 }

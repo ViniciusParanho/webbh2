@@ -2,8 +2,6 @@ package com.webbeaga.sistema.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "erros")
@@ -35,9 +33,6 @@ public class Erro {
     @JoinColumn(name = "criador_id")
     private Usuario criador;
 
-    @OneToMany(mappedBy = "erro", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<ErroAnexo> anexos = new ArrayList<>();
-
     public enum StatusErro { ABERTO, RESOLVIDO }
     public enum TipoErro { PDV, GERENCIAL, OUTROS }
 
@@ -63,6 +58,4 @@ public class Erro {
     public void setDataCriacao(LocalDateTime v) { this.dataCriacao = v; }
     public Usuario getCriador()            { return criador; }
     public void setCriador(Usuario v)      { this.criador = v; }
-    public List<ErroAnexo> getAnexos()     { return anexos; }
-    public void setAnexos(List<ErroAnexo> v) { this.anexos = v; }
 }
