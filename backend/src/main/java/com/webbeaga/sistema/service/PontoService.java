@@ -89,4 +89,13 @@ public class PontoService {
         return pontoRepo.findByUsuarioIdAndDataBetweenOrderByData(usuarioId, inicio, fim)
             .stream().map(PontoResponse::from).collect(Collectors.toList());
     }
+
+    @Transactional(readOnly = true)
+    public List<PontoResponse> getLocalizacoesHoje() {
+        return pontoRepo.findByData(LocalDate.now())
+            .stream()
+            .filter(p -> p.getHoraEntrada() != null)
+            .map(PontoResponse::from)
+            .collect(Collectors.toList());
+    }
 }

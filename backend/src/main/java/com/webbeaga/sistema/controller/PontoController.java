@@ -2,7 +2,6 @@ package com.webbeaga.sistema.controller;
 
 import com.webbeaga.sistema.dto.DTOs.*;
 import com.webbeaga.sistema.entity.Usuario;
-import com.webbeaga.sistema.repository.RegistroPontoRepository;
 import com.webbeaga.sistema.service.PontoService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -12,18 +11,15 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/ponto")
 public class PontoController {
 
     private final PontoService pontoService;
-    private final RegistroPontoRepository pontoRepo;
 
-    public PontoController(PontoService pontoService, RegistroPontoRepository pontoRepo) {
+    public PontoController(PontoService pontoService) {
         this.pontoService = pontoService;
-        this.pontoRepo = pontoRepo;
     }
 
     @PostMapping("/bater")
@@ -63,12 +59,7 @@ public class PontoController {
 
     @GetMapping("/localizacoes-hoje")
     public ResponseEntity<ApiResponse<List<PontoResponse>>> getLocalizacoesHoje() {
-        List<PontoResponse> result = pontoRepo.findByData(LocalDate.now())
-            .stream()
-            .filter(p -> p.getHoraEntrada() != null)
-            .map(PontoResponse::from)
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.ok(result));
+        return ResponseEntity.ok(ApiResponse.ok(pontoService.getLocalizacoesHoje()));
     }
 
     @GetMapping("/periodo")
